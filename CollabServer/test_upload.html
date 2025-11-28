@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>图片上传测试</title>
+</head>
+<body>
+<h2>📸 图片上传测试小工具</h2>
+
+<input type="file" id="fileInput" accept="image/*">
+
+<button onclick="uploadFile()">📤 点击上传</button>
+
+<p id="status">等待上传...</p>
+<div id="result"></div>
+
+<script>
+    async function uploadFile() {
+        const input = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
+
+        if (input.files.length === 0) {
+            alert("请先选择一张图片！");
+            return;
+        }
+
+        const file = input.files[0];
+        const formData = new FormData();
+        formData.append('image', file); // 这里的 'image' 对应后端代码里的 c.FormFile("image")
+
+        status.innerText = "⏳ 正在上传...";
+
+        try {
+            // 向你的后端发送 POST 请求
+            const response = await fetch('http://localhost:8080/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                status.innerText = "✅ 上传成功！";
+                // 显示后端返回的图片链接
+                resultDiv.innerHTML = `
+                        <p>图片链接: <a href="${data.url}" target="_blank">${data.url}</a></p>
+                        <p>预览:</p>
+                        <img src="${data.url}" style="max-width: 300px; border: 2px solid green;">
+                    `;
+            } else {
+                status.innerText = "❌ 失败: " + data.error;
+            }
+        } catch (error) {
+            status.innerText = "❌ 网络错误 (请确认后端是否已启动): " + error;
+        }
+    }
+</script>
+</body>
+</html>

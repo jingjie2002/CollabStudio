@@ -1,0 +1,65 @@
+/* 全局变量定义：统一色调 */
+:root {
+    /* 核心色彩 */
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --danger-color: #ef4444;
+    --success-color: #10b981;
+
+    /* 背景体系 (深色模式) */
+    --bg-main: #18181b;      /* 最深背景 */
+    --bg-panel: #27272a;     /* 面板背景 */
+    --bg-hover: #3f3f46;     /* 悬停背景 */
+    --border-color: #3f3f46; /* 边框颜色 */
+
+    /* 文字体系 */
+    --text-main: #f4f4f5;
+    --text-muted: #a1a1aa;
+
+    /* 布局参数 */
+    --header-height: 56px;
+    --sidebar-width: 280px;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    overflow: hidden; /* 防止最外层出现滚动条 */
+    -webkit-font-smoothing: antialiased;
+}
+
+/* 🔥 自定义滚动条 (Webkit) - 让软件看起来更原生 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #52525b;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #71717a;
+}
+
+/* 通用按钮样式重置 */
+button {
+    font-family: inherit;
+}
+
+/* 简单的淡入动画 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}

@@ -1,0 +1,37 @@
+﻿忽略 IDE 配置文件
+
+.idea/
+.vscode/
+*.iml
+
+忽略编译生成的二进制文件
+
+*.exe
+*.dll
+*.so
+*.dylib
+
+忽略 Wails 构建产物
+
+build/bin/
+frontend/dist/
+
+忽略 Node.js 依赖 (体积巨大，千万别传)
+
+node_modules/
+frontend/node_modules/
+frontend/package-lock.json
+package-lock.json
+
+忽略 Go 依赖缓存
+
+go.sum
+
+忽略 运行时生成的数据 (隐私数据)
+
+CollabServer/collab.db
+CollabServer/uploads/
+
+忽略 环境变量
+
+.env
