@@ -17,3 +17,7 @@ export function OpenFile() {
 export function SaveFile(arg1) {
   return window['go']['main']['App']['SaveFile'](arg1);
 }
+
+export function ScanLanServers() {
+  return window['go']['main']['App']['ScanLanServers']();
+}

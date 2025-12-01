@@ -8,7 +8,7 @@
           <i class="ri-hashtag"></i>
           <span>{{ roomID }}</span>
         </div>
-        <!-- 🟢 房主标识：只有房主才会显示 -->
+        <!-- 房主标识 -->
         <div v-if="isHost" class="host-badge" title="你是房主，关闭窗口会导致全员掉线">
           <i class="ri-vip-crown-fill"></i> 房主
         </div>
@@ -40,7 +40,6 @@
 
     <!-- ================= 2. 主体内容区 ================= -->
     <div class="main-content">
-      <!-- 左侧：编辑器 -->
       <main class="editor-area">
         <div class="editor-wrapper">
           <Editor
@@ -52,9 +51,7 @@
         </div>
       </main>
 
-      <!-- 右侧：侧边栏 -->
       <aside class="sidebar">
-        <!-- 上半部分：用户列表 -->
         <div class="panel users-panel">
           <div class="panel-header">
             <h3><i class="ri-group-line"></i> 在线成员 ({{ onlineUsers.length }})</h3>
@@ -70,7 +67,6 @@
           </div>
         </div>
 
-        <!-- 下半部分：聊天室 -->
         <div class="panel chat-panel">
           <div class="panel-header">
             <h3><i class="ri-chat-3-line"></i> 讨论区</h3>
@@ -89,29 +85,22 @@
                     class="chat-image"
                     @click="previewImage(msg.text.substring(6))"
                     title="点击在浏览器打开"
+                    referrerpolicy="no-referrer"
                 />
               </div>
-              <!-- 文本消息处理 -->
               <div class="msg-content" v-else>{{ msg.text }}</div>
             </div>
           </div>
 
-          <!-- 聊天输入框区域 -->
           <div class="chat-footer">
-            <!-- 表情选择器弹窗 -->
             <div v-if="showEmojiPicker" class="emoji-picker fade-in">
               <span v-for="emoji in emojiList" :key="emoji" @click="insertEmoji(emoji)">{{ emoji }}</span>
             </div>
-
-            <!-- 工具栏 -->
             <div class="toolbar-row">
               <button class="icon-btn" @click="showEmojiPicker = !showEmojiPicker"><i class="ri-emotion-line"></i></button>
               <button class="icon-btn" @click="triggerChatImage"><i class="ri-image-line"></i></button>
-              <!-- 隐藏的文件上传 Input -->
               <input type="file" ref="chatFileInput" style="display:none" accept="image/*" @change="handleChatImageUpload">
             </div>
-
-            <!-- 输入框与发送按钮 -->
             <div class="input-row">
               <input v-model="chatInput" @keyup.enter="sendChatMessage" placeholder="输入消息..." />
               <button @click="sendChatMessage" class="send-btn"><i class="ri-send-plane-fill"></i></button>
@@ -121,7 +110,6 @@
       </aside>
     </div>
 
-    <!-- ================= 3. 房主退出警告弹窗 ================= -->
     <div v-if="showExitModal" class="modal-overlay fade-in">
       <div class="modal-content">
         <div class="modal-icon"><i class="ri-alert-fill"></i></div>
@@ -140,7 +128,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import Editor from './Editor.vue'
-// 引入所有需要的后端 Go 方法
 import { SaveFile, OpenFile, IsHostUser, ConfirmExit } from '../../wailsjs/go/main/App'
 import { EventsOn } from '../../wailsjs/runtime'
 import { serverConfig } from '../store'
@@ -151,7 +138,7 @@ const props = defineProps({
   initialRoom: { type: String, default: 'demo-room' }
 })
 
-// --- 状态变量定义 ---
+// 状态变量
 const editorRef = ref(null)
 const chatBoxRef = ref(null)
 const socket = ref(null)
@@ -167,16 +154,13 @@ const showEmojiPicker = ref(false)
 const chatFileInput = ref(null)
 const emojiList = ['😀','😂','😅','🥰','😎','🤔','😐','😭','😱','😡','👍','👎','👋','🙏','🚀','🔥','🎉','❤️','💔','💩']
 
-// 节流控制 (防止打字太快刷屏)
 const isThrottled = ref(false)
 const pendingUpdate = ref(null)
 const THROTTLE_DELAY = 40
 
-// 房主保护状态
 const isHost = ref(false)
 const showExitModal = ref(false)
 
-// --- 辅助函数 ---
 const stringToColor = (str) => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -188,20 +172,44 @@ const handleCheckConnection = () => {
   if (!socket.value || socket.value.readyState === WebSocket.CLOSED) connectWebSocket()
 }
 
-// 获取完整图片路径 (自动补全服务器 IP)
+// 🟢 终极版路径修复函数
+// 无论是聊天图片还是预览，都经过这里处理
 const getImageUrl = (path) => {
   if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `${serverConfig.getHttpUrl()}${path}`
+
+  let cleanPath = path.replace(/\\/g, '/') // 清洗反斜杠
+  const currentBaseUrl = serverConfig.getHttpUrl() // 获取当前客户端连接的正确 IP
+
+  // 如果已经是完整链接
+  if (cleanPath.startsWith('http')) {
+    // 🔥 关键逻辑：如果链接里写的是 localhost，但我们现在需要连的是远程 IP
+    // 就要强行把 localhost 替换成当前的 currentBaseUrl
+    if ((cleanPath.includes('localhost') || cleanPath.includes('127.0.0.1')) &&
+        !currentBaseUrl.includes('localhost') && !currentBaseUrl.includes('127.0.0.1')) {
+
+      // 提取 /uploads/ 后面的部分
+      const uploadIndex = cleanPath.indexOf('/uploads/')
+      if (uploadIndex !== -1) {
+        return currentBaseUrl + cleanPath.substring(uploadIndex)
+      }
+    }
+    return cleanPath
+  }
+
+  // 相对路径处理
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = '/' + cleanPath
+  }
+
+  // 拼接当前 IP
+  return `${currentBaseUrl}${cleanPath}`
 }
 
-// 在浏览器中预览图片
 const previewImage = (path) => {
   const fullUrl = getImageUrl(path)
   window.open(fullUrl, '_blank')
 }
 
-// 智能 JSON 解析 (处理粘包)
 const smartJSONParse = (str) => {
   const results = []
   let depth = 0
@@ -214,7 +222,6 @@ const smartJSONParse = (str) => {
   return results
 }
 
-// --- WebSocket 核心逻辑 ---
 const connectWebSocket = () => {
   if (socket.value && socket.value.readyState === WebSocket.CONNECTING) return
   if (socket.value) socket.value.close()
@@ -244,8 +251,22 @@ const connectWebSocket = () => {
         }
         else if (payload.type === 'doc_update') {
           if (payload.sender === props.username) return
+
+          // 🟢 文档同步时的路径修复 (同步增强)
+          let content = payload.content
+          const currentBaseUrl = serverConfig.getHttpUrl()
+
+          if (currentBaseUrl && !currentBaseUrl.includes('localhost')) {
+            // 1. 修复相对路径
+            content = content.replace(/src="\/uploads\/([^"]+)"/g, `src="${currentBaseUrl}/uploads/$1"`)
+
+            // 2. 修复 localhost 绝对路径 (针对房主发来的数据)
+            // 匹配 http://localhost:8080 或 http://127.0.0.1:8080
+            content = content.replace(/src="http:\/\/(localhost|127\.0\.0\.1):8080\/uploads\/([^"]+)"/g, `src="${currentBaseUrl}/uploads/$2"`)
+          }
+
           if (editorRef.value) {
-            editorRef.value.setContent(payload.content)
+            editorRef.value.setContent(content)
           }
         }
         else if (payload.type === 'chat') {
@@ -281,7 +302,6 @@ const flushCursors = () => {
   editorRef.value.updateCursors(list)
 }
 
-// --- 文档同步 (带节流) ---
 const handleDocChange = (content) => {
   if (!socket.value || !isConnected.value) return
   if (!isThrottled.value) {
@@ -317,7 +337,6 @@ const handleCursorMove = (cursorPos) => {
   }
 }
 
-// --- 文件操作 ---
 const handleOpenFile = async () => {
   try {
     const content = await OpenFile()
@@ -332,7 +351,6 @@ const handleSaveFile = async () => {
   if (editorRef.value) await SaveFile(editorRef.value.getText())
 }
 
-// --- 聊天功能 ---
 const sendChatMessage = () => {
   if (!chatInput.value.trim() || !socket.value) return
   socket.value.send(JSON.stringify({ type: 'chat', message: chatInput.value, sender: props.username }))
@@ -361,165 +379,78 @@ const handleChatImageUpload = async (event) => {
 
 const scrollToBottom = () => { nextTick(() => { if (chatBoxRef.value) chatBoxRef.value.scrollTop = chatBoxRef.value.scrollHeight }) }
 
-// --- 生命周期 & 房主逻辑 ---
 onMounted(async () => {
   connectWebSocket()
-
-  // 初始化：检查房主身份
   try {
     isHost.value = await IsHostUser()
-    console.log("[Workspace] Is Host?", isHost.value)
-  } catch (e) { console.error("Check Host failed:", e) }
-
-  // 监听退出警告
-  EventsOn("show-exit-warning", () => {
-    showExitModal.value = true
-  })
+  } catch (e) {}
+  EventsOn("show-exit-warning", () => { showExitModal.value = true })
 })
 
-// 确认退出
-const confirmExit = () => {
-  ConfirmExit()
-}
+const confirmExit = () => { ConfirmExit() }
 
 onUnmounted(() => { if (socket.value) socket.value.close() })
 </script>
 
 <style scoped>
-/* 基础布局 */
+/* 样式保持不变，请保留原有的 CSS */
 .workspace-layout { display: flex; flex-direction: column; height: 100vh; background: var(--bg-main); color: var(--text-main); overflow: hidden; }
-
-/* 顶部导航栏 */
 .navbar { height: var(--header-height); background: var(--bg-panel); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
 .nav-left { display: flex; align-items: center; gap: 16px; }
 .logo { font-weight: 800; font-size: 1.1rem; color: var(--text-main); letter-spacing: -0.5px; }
 .room-pill { display: flex; align-items: center; gap: 6px; background: var(--bg-main); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.85rem; font-family: monospace; }
-
-/* 房主标识样式 */
-.host-badge {
-  background: linear-gradient(45deg, #f59e0b, #d97706);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: 8px;
-  cursor: help;
-}
-
 .nav-right { display: flex; align-items: center; gap: 12px; }
 .action-group { display: flex; gap: 4px; }
 .divider-v { width: 1px; height: 20px; background: var(--border-color); margin: 0 4px; }
-
-/* 按钮通用样式 */
 .nav-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 6px 8px; border-radius: 6px; font-size: 1.2rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
 .nav-btn:hover { background: var(--bg-hover); color: var(--text-main); }
 .nav-btn.danger:hover { background: rgba(239, 68, 68, 0.15); color: var(--danger-color); }
-
-/* 连接状态指示器 */
 .connection-status { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--danger-color); }
 .connection-status.online { color: var(--success-color); }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-
-/* 主布局 */
 .main-content { flex: 1; display: flex; min-height: 0; }
 .editor-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .editor-wrapper { flex: 1; overflow: hidden; position: relative; }
 .sidebar { width: var(--sidebar-width); background: var(--bg-panel); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; }
-
-/* 面板通用 */
 .panel { display: flex; flex-direction: column; }
 .panel-header { padding: 12px 16px; background: rgba(0,0,0,0.1); border-bottom: 1px solid var(--border-color); }
 .panel-header h3 { margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
-
-/* 用户列表 */
 .users-panel { height: 35%; border-bottom: 1px solid var(--border-color); }
 .user-list { flex: 1; overflow-y: auto; padding: 12px; }
 .user-row { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 6px; font-size: 0.9rem; }
 .avatar-mini { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; }
 .me-tag { margin-left: auto; font-size: 0.7rem; background: var(--bg-hover); padding: 2px 6px; border-radius: 4px; color: var(--text-muted); }
-
-/* 聊天面板 */
 .chat-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-
-/* 消息气泡 */
 .message-bubble { max-width: 85%; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; word-break: break-word; line-height: 1.4; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .my-message { align-self: flex-end; background: var(--primary-color); color: white; border-bottom-right-radius: 2px; }
 .other-message { align-self: flex-start; background: var(--bg-hover); color: var(--text-main); border-bottom-left-radius: 2px; }
 .msg-meta { font-size: 0.7rem; color: rgba(255,255,255,0.7); margin-bottom: 4px; }
-
 .chat-image { max-width: 100%; border-radius: 4px; cursor: pointer; margin-top: 4px; }
-
-/* 聊天输入区 */
 .chat-footer { padding: 10px; border-top: 1px solid var(--border-color); background: var(--bg-panel); position: relative; }
 .toolbar-row { display: flex; gap: 8px; margin-bottom: 8px; }
 .icon-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; transition: color 0.2s; }
 .icon-btn:hover { color: var(--primary-color); }
-
 .input-row { display: flex; gap: 8px; }
 .input-row input { flex: 1; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 12px; border-radius: 6px; outline: none; }
 .input-row input:focus { border-color: var(--primary-color); }
 .send-btn { background: var(--primary-color); color: white; border: none; width: 36px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
 .send-btn:hover { background: var(--primary-hover); }
-
 .emoji-picker { position: absolute; bottom: 100%; left: 10px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; width: 240px; display: flex; flex-wrap: wrap; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10; max-height: 200px; overflow-y: auto; }
 .emoji-picker span { font-size: 1.4rem; cursor: pointer; transition: transform 0.1s; padding: 4px; border-radius: 4px; }
 .emoji-picker span:hover { background: var(--bg-hover); transform: scale(1.1); }
-
-/* 退出警告弹窗样式 */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.modal-content {
-  background: #2a2a3e;
-  padding: 2rem;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 360px;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-.modal-icon {
-  font-size: 3rem;
-  color: #ef4444;
-  margin-bottom: 1rem;
-}
-
+.host-badge { background: linear-gradient(45deg, #f59e0b, #d97706); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 4px; margin-left: 8px; cursor: help; }
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.modal-content { background: #2a2a3e; padding: 2rem; border-radius: 12px; width: 90%; max-width: 360px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.modal-icon { font-size: 3rem; color: #ef4444; margin-bottom: 1rem; }
 .modal-content h3 { margin: 0 0 0.5rem 0; color: #fff; }
 .modal-content p { color: #a6adc8; font-size: 0.9rem; margin: 0.5rem 0; }
 .warning-text { color: #ef4444 !important; font-weight: bold; }
-
-.modal-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  justify-content: center;
-}
-
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: opacity 0.2s;
-}
-
+.modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: center; }
+.btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
 .btn.cancel { background: rgba(255,255,255,0.1); color: #fff; }
 .btn.confirm { background: #ef4444; color: #fff; }
 .btn:hover { opacity: 0.9; }
+.fade-in { animation: fadeIn 0.3s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 </style>

@@ -1,16 +1,19 @@
 ﻿<template>
   <div class="login-container fade-in">
     <div class="login-card">
+      <!-- Logo 区域 -->
       <div class="logo-area">
         <h1>CollabStudio</h1>
         <p>实时协作 · 无界沟通</p>
       </div>
 
+      <!-- 登录/注册 切换标签 -->
       <div class="auth-tabs">
         <span :class="{ active: !isRegister }" @click="isRegister = false">登录</span>
         <span :class="{ active: isRegister }" @click="isRegister = true">注册</span>
       </div>
 
+      <!-- 输入表单 -->
       <div class="input-group">
         <div class="input-wrapper">
           <i class="ri-user-line icon"></i>
@@ -42,6 +45,7 @@
         </button>
       </div>
 
+      <!-- 🟢 服务器配置区域 (含扫描功能) -->
       <div class="server-config">
         <div class="config-header" @click="showConfig = !showConfig">
           <i class="ri-settings-3-line"></i>
@@ -49,12 +53,35 @@
         </div>
 
         <div v-if="showConfig" class="config-body fade-in">
-          <label>服务器地址 (IP:端口)</label>
-          <input
-              v-model="serverAddress"
-              placeholder="例如 192.168.1.5:8080"
-              class="config-input"
-          />
+          <label>服务器地址</label>
+          <div class="ip-input-group">
+            <input
+                v-model="serverAddress"
+                placeholder="例如 192.168.1.5:8080"
+                class="config-input"
+            />
+            <!-- 扫描按钮 -->
+            <button @click="scanServers" class="scan-btn" :disabled="isScanning" title="扫描局域网房间">
+              <i class="ri-radar-line" :class="{ spinning: isScanning }"></i>
+            </button>
+          </div>
+
+          <!-- 扫描结果列表 -->
+          <div v-if="foundServers.length > 0" class="server-list fade-in">
+            <div v-for="srv in foundServers" :key="srv.ip" class="server-item" @click="selectServer(srv.ip)">
+              <div class="server-icon"><i class="ri-server-line"></i></div>
+              <div class="server-info">
+                <div class="server-name">{{ srv.name }}</div>
+                <div class="server-ip">{{ srv.ip }}</div>
+              </div>
+              <i class="ri-add-circle-line add-icon"></i>
+            </div>
+          </div>
+          <!-- 扫描无结果提示 -->
+          <div v-else-if="scanFinished && foundServers.length === 0" class="no-server-tip">
+            未发现房间。请确认房主已启动，且防火墙允许 UDP 通信。
+          </div>
+
           <small>默认: localhost:8080 (本机)</small>
         </div>
       </div>
@@ -65,19 +92,54 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { serverConfig } from '../store'
+// 🟢 引入 Wails 后端扫描方法 (注意：如果报错找不到，请运行 wails dev 重新生成 bindings)
+import { ScanLanServers } from '../../wailsjs/go/main/App'
 
 const emit = defineEmits(['login'])
 
-const isRegister = ref(false) // false=登录, true=注册
+const isRegister = ref(false)
 const username = ref('')
 const password = ref('')
 const serverAddress = ref('')
 const showConfig = ref(false)
 const loading = ref(false)
 
+// 扫描相关状态
+const isScanning = ref(false)
+const scanFinished = ref(false)
+const foundServers = ref([])
+
 onMounted(() => {
+  // 初始化时加载上次使用的 IP
   serverAddress.value = serverConfig.getHost()
 })
+
+// 🟢 核心功能：调用 Go 后端扫描局域网
+const scanServers = async () => {
+  isScanning.value = true
+  foundServers.value = []
+  scanFinished.value = false
+
+  try {
+    // 调用 Go 方法 ScanLanServers
+    const results = await ScanLanServers()
+    if (results && results.length > 0) {
+      foundServers.value = results
+    }
+  } catch (e) {
+    console.error("Scan failed:", e)
+    alert("扫描失败，请检查 Wails 后端是否实现了 ScanLanServers 方法")
+  } finally {
+    isScanning.value = false
+    scanFinished.value = true
+  }
+}
+
+// 选中扫描到的服务器
+const selectServer = (ip) => {
+  serverAddress.value = ip
+  foundServers.value = [] // 选择后收起列表
+}
 
 const handleAuth = async () => {
   if (!username.value.trim() || !password.value.trim()) {
@@ -85,7 +147,7 @@ const handleAuth = async () => {
     return
   }
 
-  // 1. 先更新服务器地址配置
+  // 1. 保存当前的服务器地址配置
   serverConfig.setHost(serverAddress.value)
 
   loading.value = true
@@ -93,7 +155,7 @@ const handleAuth = async () => {
   const endpoint = isRegister.value ? '/register' : '/login'
 
   try {
-    // 2. 发起真实的 HTTP 请求验证账号
+    // 2. 发起 HTTP 请求
     const response = await fetch(`${baseUrl}${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -106,21 +168,24 @@ const handleAuth = async () => {
     const data = await response.json()
 
     if (response.ok) {
-      // 成功！
       if (isRegister.value) {
         alert("注册成功，请登录！")
-        isRegister.value = false // 切换回登录页
+        isRegister.value = false // 自动切换到登录
       } else {
-        // 登录成功，通知父组件进入 Workspace
+        // 登录成功，通知 App.vue 切换界面
         emit('login', username.value)
       }
     } else {
-      // 失败 (如密码错误)
-      alert(data.error || "操作失败，请检查网络或服务器")
+      alert(data.error || "操作失败")
     }
   } catch (e) {
     console.error(e)
-    alert("连接服务器失败，请检查 IP 配置是否正确。\n当前地址: " + baseUrl)
+    let errorMsg = e.message || JSON.stringify(e)
+    // 友好的错误提示
+    if (errorMsg === "Failed to fetch") {
+      errorMsg = "连接服务器失败。可能原因：\n1. 服务器未启动\n2. IP地址填写错误\n3. 防火墙拦截 (请允许 8080 端口)"
+    }
+    alert(`登录错误: ${errorMsg}\n\n尝试连接地址: ${baseUrl}`)
   } finally {
     loading.value = false
   }
@@ -128,6 +193,7 @@ const handleAuth = async () => {
 </script>
 
 <style scoped>
+/* 容器与卡片背景 */
 .login-container {
   height: 100vh;
   display: flex;
@@ -148,6 +214,7 @@ const handleAuth = async () => {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
+/* Logo 区域 */
 .logo-area {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -162,9 +229,13 @@ const handleAuth = async () => {
   font-weight: 800;
 }
 
-.logo-area p { color: #a6adc8; margin-top: 0.5rem; font-size: 0.9rem; }
+.logo-area p {
+  color: #a6adc8;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
 
-/* Tabs */
+/* 标签页切换 */
 .auth-tabs {
   display: flex;
   justify-content: center;
@@ -189,6 +260,7 @@ const handleAuth = async () => {
   border-bottom-color: #89b4fa;
 }
 
+/* 输入框组 */
 .input-group {
   display: flex;
   flex-direction: column;
@@ -212,7 +284,7 @@ const handleAuth = async () => {
   width: 100%;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 12px 12px 12px 40px; /* Space for icon */
+  padding: 12px 12px 12px 40px; /* 留出图标位置 */
   border-radius: 8px;
   color: white;
   font-size: 1rem;
@@ -220,8 +292,11 @@ const handleAuth = async () => {
   transition: border-color 0.3s;
 }
 
-.login-input:focus { border-color: #89b4fa; }
+.login-input:focus {
+  border-color: #89b4fa;
+}
 
+/* 登录按钮 */
 .login-btn {
   background: #89b4fa;
   color: #1e1e2e;
@@ -239,32 +314,184 @@ const handleAuth = async () => {
   margin-top: 0.5rem;
 }
 
-.login-btn:hover:not(:disabled) { background: #b4befe; transform: translateY(-1px); }
-.login-btn:active:not(:disabled) { transform: translateY(1px); }
-.login-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+.login-btn:hover:not(:disabled) {
+  background: #b4befe;
+  transform: translateY(-1px);
+}
 
-/* Server Config */
+.login-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* 服务器配置区域 */
 .server-config {
   margin-top: 2rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 .config-header {
-  display: flex; align-items: center; gap: 6px;
-  color: #6c7086; font-size: 0.85rem; cursor: pointer; justify-content: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6c7086;
+  font-size: 0.85rem;
+  cursor: pointer;
+  justify-content: center;
+  transition: color 0.2s;
 }
-.config-header:hover { color: #a6adc8; }
-.config-body { margin-top: 1rem; display: flex; flex-direction: column; gap: 6px; }
-.config-body label { font-size: 0.8rem; color: #a6adc8; }
+
+.config-header:hover {
+  color: #a6adc8;
+}
+
+.config-body {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.config-body label {
+  font-size: 0.8rem;
+  color: #a6adc8;
+}
+
+.ip-input-group {
+  display: flex;
+  gap: 8px;
+}
+
 .config-input {
+  flex: 1;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 8px 12px; border-radius: 6px;
-  color: #cdd6f4; font-family: monospace; font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-family: monospace;
+  font-size: 0.9rem;
 }
-.config-body small { font-size: 0.75rem; color: #45475a; }
-.spinning { animation: spin 1s linear infinite; }
-@keyframes spin { 100% { transform: rotate(360deg); } }
-.fade-in { animation: fadeIn 0.3s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+.config-body small {
+  font-size: 0.75rem;
+  color: #45475a;
+}
+
+/* 扫描按钮 */
+.scan-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #89b4fa;
+  width: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.scan-btn:hover:not(:disabled) {
+  background: rgba(137, 180, 250, 0.2);
+  border-color: #89b4fa;
+}
+
+.scan-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* 扫描结果列表 */
+.server-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.server-item {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.server-item:hover {
+  background: rgba(137, 180, 250, 0.1);
+  border-color: #89b4fa;
+}
+
+.server-icon {
+  color: #a6adc8;
+  font-size: 1.2rem;
+}
+
+.server-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.server-name {
+  font-weight: bold;
+  color: #cdd6f4;
+  font-size: 0.9rem;
+}
+
+.server-ip {
+  font-family: monospace;
+  color: #a6adc8;
+  font-size: 0.8rem;
+}
+
+.add-icon {
+  color: #89b4fa;
+  font-size: 1.2rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.server-item:hover .add-icon {
+  opacity: 1;
+}
+
+.no-server-tip {
+  color: #ef4444;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 5px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+}
+
+/* 动画效果 */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>

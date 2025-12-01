@@ -6,12 +6,13 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, defineExpose, defineEmits, shallowRef, toRaw, markRaw } from 'vue' // 🟢 引入 markRaw
+import { onBeforeUnmount, onMounted, defineExpose, defineEmits, shallowRef, toRaw, markRaw } from 'vue'
 import { Editor, EditorContent, VueNodeViewRenderer } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import CodeBlock from '@tiptap/extension-code-block'
 import CodeBlockComponent from './CodeBlockComponent.vue'
-import Image from '@tiptap/extension-image'
+import Image from '@tiptap/extension-image' // 引入基础 Image 扩展
+import ImageComponent from './ImageComponent.vue' // 🟢 引入我们刚写的自定义图片组件
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -23,15 +24,10 @@ const emit = defineEmits(['update', 'cursor-update', 'check-connection'])
 const editor = shallowRef(null)
 
 const stringToColor = (str) => {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash)
-  const c = (hash & 0x00ffffff).toString(16).toUpperCase()
-  return '#' + '00000'.substring(0, 6 - c.length) + c
+  let hash = 0; for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash); const c = (hash & 0x00ffffff).toString(16).toUpperCase(); return '#' + '00000'.substring(0, 6 - c.length) + c;
 }
 
-const triggerConnectionCheck = () => {
-  emit('check-connection')
-}
+const triggerConnectionCheck = () => { emit('check-connection') }
 
 onMounted(() => {
   // 🟢 核心修复：使用 markRaw 包裹 Editor 实例
@@ -44,13 +40,17 @@ onMounted(() => {
         history: true,
       }),
       CodeBlock.extend({
-        addNodeView() {
-          return VueNodeViewRenderer(CodeBlockComponent)
-        },
+        addNodeView() { return VueNodeViewRenderer(CodeBlockComponent) },
       }),
-      Image.configure({
-        inline: true,
-        allowBase64: true,
+      // 🟢 核心修改：扩展 Image 插件，使用 Vue 组件渲染
+      // 这样图片就能自动补全 IP 地址了
+      Image.extend({
+        addNodeView() {
+          return VueNodeViewRenderer(ImageComponent)
+        },
+      }).configure({
+        inline: true,       // 允许图片在行内显示
+        allowBase64: true,  // 允许粘贴截图
       }),
       TaskList,
       TaskItem.configure({ nested: true }),
@@ -58,25 +58,15 @@ onMounted(() => {
       RemoteCursor,
     ],
     editorProps: {
-      attributes: {
-        class: 'tiptap-editor',
-      },
+      attributes: { class: 'tiptap-editor' },
     },
-    onFocus: () => {
-      triggerConnectionCheck()
-    },
-    onUpdate: ({ editor }) => {
-      emit('update', editor.getHTML())
-    },
-    onSelectionUpdate: ({ editor }) => {
-      const { anchor } = editor.state.selection
-      emit('cursor-update', anchor)
-    },
+    onFocus: () => { triggerConnectionCheck() },
+    onUpdate: ({ editor }) => { emit('update', editor.getHTML()) },
+    onSelectionUpdate: ({ editor }) => { emit('cursor-update', editor.state.selection.anchor) },
   })
 
   // 赋值给 shallowRef
   editor.value = markRaw(_editor)
-
   window.addEventListener('focus', triggerConnectionCheck)
 })
 
@@ -84,62 +74,58 @@ const setContent = (newContent) => {
   if (editor.value) {
     // 即使加了 markRaw，使用 toRaw 也是个好习惯，双重保险
     const rawEditor = toRaw(editor.value)
-
     // 检查内容是否变化，避免死循环
     if (rawEditor.getHTML() !== newContent) {
-      // 这里的 emitUpdate: false 很重要，防止 setContent 又触发 onUpdate 发送回 WebSocket
+      // emitUpdate: false 很重要，防止 setContent 又触发 onUpdate 发送回 WebSocket
       rawEditor.commands.setContent(newContent, false)
     }
   }
 }
 
-const getText = () => {
-  return editor.value ? editor.value.getHTML() : ''
-}
+const getText = () => { return editor.value ? editor.value.getHTML() : '' }
 
 const updateCursors = (users) => {
   if (!editor.value) return
 
   const rawEditor = toRaw(editor.value)
   if (!rawEditor || !rawEditor.state) return
+  const docSize = rawEditor.state.doc.content.size
 
   // 准备纯数据 (Pure Data)
-  const cursorData = users
-      .filter(u => u && u.username)
-      .map(u => {
-        let safePos = u.cursorVal
-        if (typeof safePos !== 'number' || isNaN(safePos)) safePos = 0
+  const cursorData = users.filter(u => u && u.username).map(u => {
+    let safePos = u.cursorVal
+    if (typeof safePos !== 'number' || isNaN(safePos)) safePos = 0
 
-        return {
-          id: u.username,
-          name: u.username,
-          pos: safePos,
-          color: stringToColor(u.username)
-        }
-      })
+    // 🛡️ 终极防崩溃检查：位置钳制
+    if (safePos < 0) safePos = 0
+    if (safePos > docSize) safePos = docSize
+
+    return {
+      id: u.username,
+      name: u.username,
+      pos: safePos,
+      color: stringToColor(u.username)
+    }
+  })
 
   try {
     const tr = rawEditor.state.tr
     // 我们只传递纯 JSON 数据给插件，不再传递 Decoration 对象
     tr.setMeta(cursorPluginKey, { type: 'update', cursors: cursorData })
     rawEditor.view.dispatch(tr)
-  } catch (e) {
-    console.error("Cursor update failed:", e)
-  }
+  } catch (e) { console.error("Cursor update failed:", e) }
 }
 
 defineExpose({ setContent, getText, updateCursors })
 
 onBeforeUnmount(() => {
-  if (editor.value) {
-    editor.value.destroy()
-  }
+  if (editor.value) editor.value.destroy()
   window.removeEventListener('focus', triggerConnectionCheck)
 })
 </script>
 
 <style>
-/* CSS 保持不变 */
+/* 保持样式不变 */
 .editor-container { height: 100%; width: 100%; display: flex; flex-direction: column; }
 .editor-content { flex: 1; overflow-y: auto; padding: 10px 20px; color: #e5e7eb; font-family: 'Consolas', monospace, sans-serif; }
 .tiptap-editor { outline: none; min-height: 100%; position: relative; }
