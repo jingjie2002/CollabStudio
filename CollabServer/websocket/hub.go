@@ -4,6 +4,7 @@ import (
 	"collab-server/database"
 	"collab-server/models"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -293,4 +294,41 @@ func (h *Hub) GetStats() map[string]interface{} {
 		"total_clients": totalClients,
 		"dirty_rooms":   len(h.dirtyRooms),
 	}
+}
+
+// =============================================================================
+// ClearRoom 清理指定房间（管理员 API 调用）
+// =============================================================================
+// 执行流程：
+// 1. 查找房间是否存在
+// 2. 将房间文档内容刷写到数据库（防止丢数据）
+// 3. 断开该房间所有客户端连接
+// 4. 从 rooms map 中移除该房间
+// 返回被踢出的客户端数量和可能的错误
+// =============================================================================
+func (h *Hub) ClearRoom(roomID string) (int, error) {
+	room, ok := h.rooms[roomID]
+	if !ok {
+		return 0, fmt.Errorf("房间 %s 不存在", roomID)
+	}
+
+	// 1. 先刷写文档到数据库
+	if room.Content != "" {
+		h.saveDocumentToDB(roomID, room.Content)
+		log.Printf("📝 [ClearRoom] 房间 %s 文档已保存到数据库", roomID)
+	}
+
+	// 2. 断开所有客户端
+	kickedCount := len(room.Clients)
+	for client := range room.Clients {
+		close(client.Send)
+		delete(room.Clients, client)
+	}
+
+	// 3. 移除房间
+	delete(h.rooms, roomID)
+	delete(h.dirtyRooms, roomID)
+
+	log.Printf("🧹 [ClearRoom] 房间 %s 已清理，踢出 %d 个客户端", roomID, kickedCount)
+	return kickedCount, nil
 }

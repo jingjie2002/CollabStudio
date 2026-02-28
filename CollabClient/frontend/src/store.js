@@ -1,8 +1,7 @@
 ﻿import { reactive } from 'vue'
 
 const STORE_KEY = 'collab_server_host'
-const DEFAULT_HOST_IP = '119.29.55.127'
-const DEFAULT_REMOTE_IP = '119.29.55.127'
+const DEFAULT_SERVER_IP = import.meta.env.VITE_DEFAULT_SERVER_IP || 'localhost'
 const DEFAULT_DEV_PORT = '8080'
 const DEFAULT_PROD_PORT = '80'
 
@@ -21,22 +20,7 @@ const isLanIP = (ip) => {
     if (!isValidIP(ip)) return false
     return ip.startsWith('192.168.') ||
         ip.startsWith('10.') ||
-        ip.startsWith('172.16.') ||
-        ip.startsWith('172.17.') ||
-        ip.startsWith('172.18.') ||
-        ip.startsWith('172.19.') ||
-        ip.startsWith('172.20.') ||
-        ip.startsWith('172.21.') ||
-        ip.startsWith('172.22.') ||
-        ip.startsWith('172.23.') ||
-        ip.startsWith('172.24.') ||
-        ip.startsWith('172.25.') ||
-        ip.startsWith('172.26.') ||
-        ip.startsWith('172.27.') ||
-        ip.startsWith('172.28.') ||
-        ip.startsWith('172.29.') ||
-        ip.startsWith('172.30.') ||
-        ip.startsWith('172.31.')
+        /^172\.(1[6-9]|2[0-9]|3[01])\./.test(ip)
 }
 
 /**
@@ -63,7 +47,7 @@ const inferPort = (host) => {
 }
 
 /**
- * 动态寻路逻辑 v3.9.0
+ * 动态寻路逻辑 v4.0
  * 智能检测当前环境并返回最佳服务器地址
  */
 const getAutoHost = () => {
@@ -72,8 +56,12 @@ const getAutoHost = () => {
     // 0. Wails 生产环境检测（最高优先级）
     // Wails 构建后，window.location.hostname 返回 'wails.localhost'
     if (hostname === 'wails.localhost' || hostname.endsWith('.wails.localhost')) {
-        console.log(`🖥️ [Config] Wails 客户端模式 → 强制指向生产服务器 ${DEFAULT_REMOTE_IP}`)
-        return DEFAULT_REMOTE_IP  // 不带端口 = 隐式 80
+        console.log(`🖥️ [Config] Wails 客户端模式 → 指向服务器 ${DEFAULT_SERVER_IP}`)
+        // 本地 Wails 模式下优先连本机
+        if (DEFAULT_SERVER_IP === 'localhost') {
+            return `localhost:${DEFAULT_DEV_PORT}`
+        }
+        return DEFAULT_SERVER_IP  // 不带端口 = 隐式 80
     }
 
     // 1. 优先使用环境变量（构建时注入）
@@ -98,13 +86,7 @@ const getAutoHost = () => {
         return result
     }
 
-    // 4. 腾讯云公网 IP 显式匹配（强制 80 端口，省略显示）
-    if (hostname === DEFAULT_REMOTE_IP || hostname === '119.29.55.127') {
-        console.log(`🌐 [Config] 腾讯云公网 IP → ${hostname} (端口 80)`)
-        return hostname  // 不带端口 = 隐式 80
-    }
-
-    // 5. 其他公网 IP 或域名访问
+    // 4. 公网 IP 或域名访问
     if (hostname) {
         // 如果当前页面有端口，使用相同端口；否则公网默认 80
         const port = locationPort || DEFAULT_PROD_PORT
@@ -113,15 +95,12 @@ const getAutoHost = () => {
         return result
     }
 
-    // 6. 兜底默认 IP（不带端口，公网默认80）
-    console.log('[Config] Using Default Fallback:', DEFAULT_REMOTE_IP)
-    return DEFAULT_REMOTE_IP
+    // 5. 兜底默认
+    console.log('[Config] Using Default Fallback:', DEFAULT_SERVER_IP)
+    return DEFAULT_SERVER_IP
 }
 
 // 初始化状态
-// 如果用户手动设置过 (localStorage)，优先尊重用户选择？
-// 题目要求 "动态寻路逻辑... 优先级..."，通常意味着自动检测优先，或者默认值策略。
-// 这里采用：如果 LocalStorage 有值且有效，使用它；否则使用自动检测。
 const initialHost = localStorage.getItem(STORE_KEY) || getAutoHost()
 
 const state = reactive({
@@ -146,9 +125,6 @@ export const serverConfig = {
 
     // 动态生成 HTTP URL
     getHttpUrl() {
-        // 如果 host 已经包含端口，直接使用；否则默认 80 (浏览器会自动隐藏 :80)
-        // 注意：getAutoHost 返回的可能是 IP，也可能是 IP:Port
-        // 如果是纯 IP，构建时加上 http://
         return `http://${state.host}`
     },
 
@@ -157,3 +133,4 @@ export const serverConfig = {
         return `ws://${state.host}`
     }
 }
+

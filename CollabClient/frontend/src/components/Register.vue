@@ -1,6 +1,6 @@
 ﻿<script setup>
 import { ref } from 'vue'
-import axios from 'axios'
+import { serverConfig } from '../store'
 
 const emit = defineEmits(['register-success', 'switch-to-login'])
 
@@ -24,23 +24,29 @@ const handleRegister = async () => {
   isLoading.value = true
   errorMessage.value = ''
 
+  const baseUrl = serverConfig.getHttpUrl()
+
   try {
-    // 调用后端注册接口
-    await axios.post('http://localhost:8080/register', {
-      username: username.value,
-      password: password.value
+    const response = await fetch(`${baseUrl}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: username.value,
+        password: password.value
+      })
     })
 
-    // 注册成功，通知父组件（可以自动填入账号，或者直接跳回登录页）
-    alert("注册成功！请登录")
-    emit('register-success', username.value)
+    const data = await response.json()
 
-  } catch (error) {
-    if (error.response && error.response.data) {
-      errorMessage.value = error.response.data.error || "注册失败"
+    if (response.ok) {
+      alert("注册成功！请登录")
+      emit('register-success', username.value)
     } else {
-      errorMessage.value = "网络错误，请检查后端服务"
+      errorMessage.value = data.error || "注册失败"
     }
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = "网络错误，请检查后端服务。\n当前地址: " + baseUrl
   } finally {
     isLoading.value = false
   }

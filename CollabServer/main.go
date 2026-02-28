@@ -8,6 +8,7 @@ import (
 	"collab-server/websocket"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -68,6 +69,11 @@ var hub *websocket.Hub
 func main() {
 	// 🔧 设置日志格式：包含时间戳和文件名行号，方便调试定位
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	// ==========================================================================
+	// 阶段 -1：初始化文件日志（用于静默运行时的问题排查）
+	// ==========================================================================
+	setupFileLogging()
 
 	// ==========================================================================
 	// 阶段 0：加载配置
@@ -345,4 +351,30 @@ func startUDPDiscoveryService() {
 			conn.WriteToUDP([]byte(reply), remoteAddr)
 		}
 	}
+}
+
+// =============================================================================
+// setupFileLogging 初始化文件日志
+// =============================================================================
+// 将 log 输出同时写入 stdout 和 server.log 文件
+// 文件位于可执行文件同级目录下，方便后端静默运行时排查问题
+// =============================================================================
+func setupFileLogging() {
+	exePath, err := os.Executable()
+	if err != nil {
+		log.Println("⚠️ 无法获取可执行文件路径，日志仅输出到控制台")
+		return
+	}
+
+	logPath := filepath.Join(filepath.Dir(exePath), "server.log")
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Printf("⚠️ 无法创建日志文件 %s: %v", logPath, err)
+		return
+	}
+
+	// 同时写入 stdout 和文件
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+	log.SetOutput(multiWriter)
+	log.Printf("📝 日志文件已启用: %s", logPath)
 }

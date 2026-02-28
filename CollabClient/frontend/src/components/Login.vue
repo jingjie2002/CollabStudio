@@ -54,7 +54,7 @@
           <div class="config-row">
             <input
                 v-model="serverAddress"
-                placeholder="例如 119.29.55.127"
+                placeholder="例如 192.168.1.100:8080"
                 class="config-input"
             />
             <!-- 扫描按钮 -->
@@ -62,7 +62,7 @@
               <i class="ri-radar-line" :class="{ spinning: isScanning }"></i>
             </button>
           </div>
-          <small>默认: localhost:80 (本机)</small>
+          <small>默认: localhost:8080 (本机)</small>
 
           <!-- 扫描结果列表 -->
           <div v-if="foundServers.length > 0" class="server-list fade-in">

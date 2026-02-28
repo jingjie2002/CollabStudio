@@ -206,6 +206,6 @@ func setupRoutes(r *gin.Engine, hub *websocket.Hub) {
 	{
 		admin.GET("/rooms", controllers.GetAllRooms(hub))
 		admin.GET("/stats", controllers.GetServerStats(hub))
-		admin.POST("/clear-room", controllers.ClearRoom)
+		admin.POST("/clear-room", controllers.ClearRoom(hub))
 	}
 }

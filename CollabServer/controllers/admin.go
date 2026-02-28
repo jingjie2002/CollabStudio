@@ -96,21 +96,28 @@ func GetServerStats(hub *websocket.Hub) gin.HandlerFunc {
 }
 
 // =============================================================================
-// ClearRoom 清空指定房间（预留接口）
+// ClearRoom 清空指定房间
 // =============================================================================
-// 接收 room_id 参数，执行房间清理逻辑
+// 高阶函数，接收 Hub 实例，执行房间清理逻辑
 // =============================================================================
-func ClearRoom(c *gin.Context) {
-	roomID := c.PostForm("room_id")
-	if roomID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "缺少 room_id 参数"})
-		return
-	}
+func ClearRoom(hub *websocket.Hub) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		roomID := c.PostForm("room_id")
+		if roomID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "缺少 room_id 参数"})
+			return
+		}
 
-	// TODO: 实现房间清理逻辑
-	// 目前仅返回成功响应，实际清理逻辑需根据业务需求实现
-	c.JSON(http.StatusOK, gin.H{
-		"message": "房间清理请求已接收",
-		"room_id": roomID,
-	})
+		kickedCount, err := hub.ClearRoom(roomID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":      "房间已清理",
+			"room_id":      roomID,
+			"kicked_count": kickedCount,
+		})
+	}
 }

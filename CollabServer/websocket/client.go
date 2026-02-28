@@ -48,8 +48,9 @@ var upgrader = websocket.Upgrader{
 		// 从环境变量读取白名单
 		allowedOrigins := config.GetEnv("CORS_ORIGINS", "")
 		if allowedOrigins == "" {
-			// 未配置时，使用开发默认值
-			allowedOrigins = "http://localhost:5173,http://localhost:8080,http://127.0.0.1:5173,wails://wails"
+			// 未配置时，开发模式全放行（与 router.go setupCORS 行为一致）
+			log.Println("📡 WebSocket CORS 未配置，开发模式放行:", origin)
+			return true
 		}
 
 		// 🟢 调试日志：显示当前检查的 Origin 和白名单
