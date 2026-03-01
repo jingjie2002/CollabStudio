@@ -44,7 +44,7 @@
             v-show="room.roomId === activeRoom"
             :username="currentUser"
             :initial-room="room.roomId"
-            @logout="handleLogout"
+            @leave-room="handleLeaveRoom(room.roomId)"
         />
       </div>
     </template>
@@ -155,6 +155,11 @@ const closeRoom = (roomId) => {
     const newIdx = Math.min(idx, openRooms.length - 1)
     activeRoom.value = openRooms[newIdx].roomId
   }
+}
+
+// 退出房间（关闭当前标签，回到大厅）
+const handleLeaveRoom = (roomId) => {
+  closeRoom(roomId)
 }
 
 // 返回大厅加入新房间（保持已有标签）

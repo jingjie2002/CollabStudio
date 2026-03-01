@@ -142,6 +142,16 @@ func (h *Hub) Run() {
 					delete(room.Clients, client)
 					close(client.Send)
 					h.broadcastUserList(roomID)
+
+					// 🧹 空房间自动清理：最后一人离开后保存文档并销毁房间
+					if len(room.Clients) == 0 {
+						if room.Content != "" {
+							h.saveDocumentToDB(roomID, room.Content)
+						}
+						delete(h.rooms, roomID)
+						delete(h.dirtyRooms, roomID)
+						log.Printf("🧹 房间 %s 已空，自动清理", roomID)
+					}
 				}
 			}
 

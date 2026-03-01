@@ -26,10 +26,6 @@
 
         <div class="divider-v"></div>
 
-        <!-- 主题切换 -->
-        <button @click="handleToggleTheme" class="nav-btn" :title="settings.theme === 'dark' ? '切换为浅色' : '切换为深色'">
-          <i :class="settings.theme === 'dark' ? 'ri-moon-line' : 'ri-sun-line'"></i>
-        </button>
         <!-- 设置 -->
         <button @click="showSettings = true" class="nav-btn" title="设置">
           <i class="ri-settings-3-line"></i>
@@ -43,7 +39,7 @@
         </div>
 
         <div class="user-badge">{{ username }}</div>
-        <button @click="$emit('logout')" class="nav-btn danger" title="退出">
+        <button @click="$emit('leave-room')" class="nav-btn danger" title="退出房间">
           <i class="ri-logout-box-r-line"></i>
         </button>
       </div>
