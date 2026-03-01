@@ -199,11 +199,10 @@ const formatContent = (text) => {
 .ai-panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0; /* Ensures flex container shrinks correctly */
   width: 100%;
   background: var(--bg-panel);
-  position: absolute; /* Pin it to the parent bounds */
-  inset: 0;
 }
 
 .panel-header {
