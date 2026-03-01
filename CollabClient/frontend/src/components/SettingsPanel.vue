@@ -97,6 +97,7 @@
 
         <!-- 底部操作 -->
         <div class="drawer-footer">
+          <div class="save-hint"><i class="ri-check-line"></i> 设置已自动保存</div>
           <button @click="handleReset" class="reset-btn">
             <i class="ri-refresh-line"></i> 恢复默认设置
           </button>
@@ -340,6 +341,19 @@ const handleReset = () => {
 .drawer-footer {
   padding: 16px 24px;
   border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.save-hint {
+  color: var(--success-color, #10b981);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  opacity: 0.8;
 }
 
 .reset-btn {

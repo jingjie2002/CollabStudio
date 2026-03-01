@@ -114,7 +114,15 @@ func AIChat(c *gin.Context) {
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
 
-	client := &http.Client{Timeout: 120 * time.Second}
+	// 配置 HTTP 客户端：必须继承系统代理环境 (http.ProxyFromEnvironment)
+	// 这样当用户开启科学上网代理时，后端的请求才能透传
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+	}
+	client := &http.Client{
+		Timeout:   120 * time.Second,
+		Transport: transport,
+	}
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		log.Printf("❌ [AI] API 请求失败: %v", err)

@@ -257,3 +257,47 @@
 2026/03/02 03:58:12 main.go:219: ⚠️ DIST_PATH 指定的目录不存在: F:\goworkstation\MyGradProject2\MyGradProject\dist (原始路径: ./dist)
 2026/03/02 03:58:12 main.go:39: 📋 [环境判定] .env PORT=8080
 2026/03/02 03:58:12 main.go:344: 📡 局域网广播服务已启动 (UDP:9999)，等待被发现...
+2026/03/02 04:00:28 main.go:395: 📝 日志文件已启用: F:\goworkstation\MyGradProject2\MyGradProject\server.log
+2026/03/02 04:00:28 main.go:95: ✅ JWT_SECRET 已就绪
+2026/03/02 04:00:28 db.go:27: ✅ 数据库文件权限已设置为 0644: collab.db
+2026/03/02 04:00:28 main.go:140: 🔐 CORS 白名单已加载: [http://localhost:5173 http://wails.localhost]
+2026/03/02 04:00:28 main.go:164: 📂 上传目录已就绪: uploads
+2026/03/02 04:00:28 main.go:179: 📂 正在尝试挂载静态资源目录: F:\goworkstation\MyGradProject2\MyGradProject\dist
+2026/03/02 04:00:28 main.go:220: ⚠️ DIST_PATH 指定的目录不存在: F:\goworkstation\MyGradProject2\MyGradProject\dist (原始路径: ./dist)
+2026/03/02 04:00:28 main.go:40: 📋 [环境判定] .env PORT=8080
+2026/03/02 04:00:28 main.go:351: 📡 局域网广播服务已启动 (UDP:9999)，等待被发现...
+2026/03/02 04:00:35 client.go:63: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 04:00:35 client.go:70: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 04:00:35 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 04:05:13 hub.go:152: 🧹 房间 demo-room 已空，内存已清理
+2026/03/02 04:06:50 client.go:63: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 04:06:50 client.go:70: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 04:06:50 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 04:06:58 ai.go:128: ❌ [AI] API 返回异常 (404): [{
+  "error": {
+    "code": 404,
+    "message": "models/gemini-1.5-flash is not found for API version v1main, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.",
+    "status": "NOT_FOUND"
+  }
+}
+]
+2026/03/02 04:09:10 ai.go:128: ❌ [AI] API 返回异常 (404): [{
+  "error": {
+    "code": 404,
+    "message": "models/gemini-1.5-flash is not found for API version v1main, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.",
+    "status": "NOT_FOUND"
+  }
+}
+]
+2026/03/02 04:10:01 ai.go:128: ❌ [AI] API 返回异常 (404): 
+2026/03/02 04:10:16 ai.go:128: ❌ [AI] API 返回异常 (404): 
+2026/03/02 04:10:27 ai.go:128: ❌ [AI] API 返回异常 (404): 
+2026/03/02 04:14:02 client.go:108: error: websocket: close 1005 (no status)
+2026/03/02 04:14:02 hub.go:152: 🧹 房间 demo-room 已空，内存已清理
+2026/03/02 04:14:03 client.go:63: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 04:14:03 client.go:70: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 04:14:03 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 04:14:09 ai.go:128: ❌ [AI] API 返回异常 (404): 
+2026/03/02 04:14:59 ai.go:128: ❌ [AI] API 返回异常 (404): 
+2026/03/02 04:16:27 ai.go:128: ❌ [AI] API 返回异常 (404): 
+2026/03/02 04:16:30 hub.go:152: 🧹 房间 demo-room 已空，内存已清理
