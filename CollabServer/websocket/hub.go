@@ -142,16 +142,14 @@ func (h *Hub) Run() {
 					close(client.Send)
 					h.broadcastUserList(roomID)
 
-					// 🧹 空房间自动清理：最后一人离开后保存文档并销毁房间
+					// 🧹 空房间自动清理：最后一人离开后保存文档并销毁内存房间
 					if len(room.Clients) == 0 {
 						if room.Content != "" {
 							h.saveDocumentToDB(roomID, room.Content)
 						}
 						delete(h.rooms, roomID)
 						delete(h.dirtyRooms, roomID)
-						// 清除该房间的访问历史记录（大厅不再显示）
-						database.DB.Where("room_id = ?", roomID).Delete(&models.History{})
-						log.Printf("🧹 房间 %s 已空，自动清理（含历史记录）", roomID)
+						log.Printf("🧹 房间 %s 已空，内存已清理", roomID)
 					}
 				}
 			}

@@ -220,6 +220,7 @@ func main() {
 	r.POST("/register", controllers.Register)
 	r.POST("/login", controllers.Login)
 	r.GET("/history", controllers.GetHistory)
+	r.DELETE("/history/:id", controllers.DeleteHistory)
 	r.POST("/upload", controllers.UploadImage)
 	r.POST("/api/ai/chat", controllers.AIChat)
 

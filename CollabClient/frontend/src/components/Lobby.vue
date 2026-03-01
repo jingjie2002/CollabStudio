@@ -33,6 +33,16 @@ const joinFromHistory = (roomID) => {
   handleEnter()
 }
 
+const deleteHistory = async (id, event) => {
+  event.stopPropagation()
+  try {
+    await fetch(`${serverConfig.getHttpUrl()}/history/${id}`, { method: 'DELETE' })
+    historyList.value = historyList.value.filter(h => h.id !== id)
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 const formatTime = (isoString) => {
   const date = new Date(isoString)
   return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`
@@ -78,6 +88,9 @@ onMounted(() => { fetchHistory() })
               <span class="room-name">{{ item.room_id }}</span>
               <span class="room-time">{{ formatTime(item.last_visited) }}</span>
             </div>
+            <button class="btn-delete-history" @click="deleteHistory(item.id, $event)" title="删除记录">
+              <i class="ri-close-line"></i>
+            </button>
           </li>
         </ul>
       </div>
@@ -180,10 +193,20 @@ onMounted(() => { fetchHistory() })
   padding: 10px 12px; border-radius: 8px;
   cursor: pointer; transition: all 0.2s;
   color: var(--text-muted);
+  position: relative;
 }
 .history-item:hover { background: var(--bg-hover); color: var(--text-main); transform: translateX(4px); }
 .history-item .icon { font-size: 1.1rem; }
-.meta { display: flex; flex-direction: column; }
+.meta { display: flex; flex-direction: column; flex: 1; }
+
+.btn-delete-history {
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; padding: 4px; border-radius: 4px;
+  font-size: 0.9rem; opacity: 0; transition: all 0.2s;
+  flex-shrink: 0;
+}
+.history-item:hover .btn-delete-history { opacity: 1; }
+.btn-delete-history:hover { color: var(--danger-color); background: rgba(239,68,68,0.1); }
 .room-name { font-size: 0.9rem; font-weight: 500; }
 .room-time { font-size: 0.75rem; opacity: 0.7; }
 

@@ -149,3 +149,71 @@
 2026/03/01 14:25:44 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
 2026/03/01 14:25:44 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
 2026/03/01 14:25:44 hub.go:118: Join: 111 (Room: demo-room)
+2026/03/02 01:22:14 main.go:381: 📝 日志文件已启用: F:\goworkstation\MyGradProject2\MyGradProject\server.log
+2026/03/02 01:22:14 main.go:88: ✅ JWT_SECRET 已就绪
+2026/03/02 01:22:14 db.go:27: ✅ 数据库文件权限已设置为 0644: collab.db
+2026/03/02 01:22:14 main.go:133: 🔐 CORS 白名单已加载: [http://localhost:5173 http://wails.localhost]
+2026/03/02 01:22:14 main.go:157: 📂 上传目录已就绪: uploads
+2026/03/02 01:22:14 main.go:172: 📂 正在尝试挂载静态资源目录: F:\goworkstation\MyGradProject2\MyGradProject\dist
+2026/03/02 01:22:14 main.go:213: ⚠️ DIST_PATH 指定的目录不存在: F:\goworkstation\MyGradProject2\MyGradProject\dist (原始路径: ./dist)
+2026/03/02 01:22:14 main.go:51: 💻 [环境判定] 本地开发环境 → 使用开发端口 8080
+2026/03/02 01:22:14 main.go:337: 📡 局域网广播服务已启动 (UDP:9999)，等待被发现...
+2026/03/02 01:22:20 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:22:20 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:22:20 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:22:21 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:22:21 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:22:22 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:22:22 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:22:22 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:22:28 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:22:28 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:22:36 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:22:36 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:22:36 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:26:03 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:28:53 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:28:53 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:28:53 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:29:05 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:29:05 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:29:06 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:29:06 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:29:06 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:29:07 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:29:07 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:29:08 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:29:08 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:29:08 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:29:09 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:29:09 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:29:11 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:29:11 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:29:11 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:29:12 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:29:12 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:29:12 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:29:12 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:29:12 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:29:13 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:29:13 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:29:16 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:29:16 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:29:16 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:29:17 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:29:17 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:29:18 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:29:18 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:29:18 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:29:19 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:29:19 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:29:21 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:29:21 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:29:21 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:29:22 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:29:22 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+2026/03/02 01:29:23 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/02 01:29:23 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+2026/03/02 01:29:23 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 01:29:24 client.go:102: error: websocket: close 1005 (no status)
+2026/03/02 01:29:24 hub.go:154: 🧹 房间 demo-room 已空，自动清理（含历史记录）

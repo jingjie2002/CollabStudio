@@ -22,3 +22,14 @@ func GetHistory(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"history": histories})
 }
+
+// DeleteHistory 删除指定的访问记录
+func DeleteHistory(c *gin.Context) {
+	id := c.Param("id")
+	result := database.DB.Delete(&models.History{}, id)
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "记录不存在"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "已删除"})
+}
