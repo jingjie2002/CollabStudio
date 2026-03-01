@@ -173,7 +173,17 @@ const updateCursors = (users) => {
   }
 }
 
-defineExpose({ setContent, getText, updateCursors })
+const insertTextAtCursor = (text) => {
+  if (editor.value) {
+    const rawEditor = toRaw(editor.value)
+    // 插入内容并获取焦点
+    rawEditor.chain().focus().insertContent(text).run()
+    // 触发更新同步
+    emit('update', rawEditor.getHTML())
+  }
+}
+
+defineExpose({ setContent, getText, updateCursors, insertTextAtCursor })
 
 onBeforeUnmount(() => {
   if (editor.value) {
