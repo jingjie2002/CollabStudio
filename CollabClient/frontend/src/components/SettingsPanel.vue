@@ -28,16 +28,23 @@
             </div>
           </section>
 
-          <!-- ====== 编辑器 ====== -->
+          <!-- ====== 字体 ====== -->
           <section class="settings-section">
-            <h3><i class="ri-edit-line"></i> 编辑器</h3>
+            <h3><i class="ri-font-size-2"></i> 字体</h3>
 
             <div class="setting-row">
               <label>字体大小</label>
-              <div class="stepper">
-                <button @click="changeFontSize(-1)">−</button>
-                <span class="stepper-value">{{ settings.fontSize }}px</span>
-                <button @click="changeFontSize(1)">+</button>
+              <div class="slider-group">
+                <input
+                  type="range"
+                  :value="settings.fontSize"
+                  @input="settings.fontSize = Number($event.target.value)"
+                  min="10"
+                  max="28"
+                  step="1"
+                  class="range-slider"
+                />
+                <span class="slider-value">{{ settings.fontSize }}px</span>
               </div>
             </div>
 
@@ -107,13 +114,6 @@ defineEmits(['close'])
 
 const handleToggleTheme = () => {
   toggleTheme()
-}
-
-const changeFontSize = (delta) => {
-  const newSize = settings.fontSize + delta
-  if (newSize >= 10 && newSize <= 28) {
-    settings.fontSize = newSize
-  }
 }
 
 const handleReset = () => {
@@ -262,35 +262,50 @@ const handleReset = () => {
   transform: translateX(22px);
 }
 
-/* Stepper */
-.stepper {
+/* Slider */
+.slider-group {
   display: flex;
   align-items: center;
-  gap: 0;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  overflow: hidden;
+  gap: 10px;
 }
 
-.stepper button {
-  width: 32px;
-  height: 32px;
-  background: var(--bg-hover);
-  border: none;
-  color: var(--text-main);
-  font-size: 1rem;
+.range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 2px;
+  outline: none;
   cursor: pointer;
-  transition: background 0.2s;
 }
-.stepper button:hover { background: var(--primary-color); color: white; }
 
-.stepper-value {
-  width: 50px;
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  transition: transform 0.15s;
+}
+
+.range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.slider-value {
+  min-width: 42px;
   text-align: center;
   font-family: monospace;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-main);
   background: var(--bg-main);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
 }
 
 /* Select */

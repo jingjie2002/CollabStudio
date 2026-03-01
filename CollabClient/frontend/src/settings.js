@@ -65,18 +65,32 @@ watch(settings, (newVal) => {
     }
 }, { deep: true })
 
+// 监听字体变化 → 全局应用
+watch(() => [settings.fontSize, settings.fontFamily], () => {
+    applyFont()
+})
+
 // 恢复默认设置
 export function resetSettings() {
     const defaults = structuredClone(DEFAULT_SETTINGS)
     Object.assign(settings, defaults)
-    // 重新应用主题
     applyTheme(settings.theme)
+    applyFont()
 }
 
 // 应用主题到 DOM
 export function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme)
     settings.theme = theme
+}
+
+// 应用字体到全局
+export function applyFont() {
+    const root = document.getElementById('app-root')
+    if (root) {
+        root.style.fontSize = settings.fontSize + 'px'
+        root.style.fontFamily = settings.fontFamily + ', sans-serif'
+    }
 }
 
 // 切换主题
@@ -88,4 +102,5 @@ export function toggleTheme() {
 // 初始化（在 App.vue onMounted 中调用）
 export function initSettings() {
     applyTheme(settings.theme)
+    applyFont()
 }
