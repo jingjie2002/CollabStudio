@@ -150,7 +150,9 @@ func (h *Hub) Run() {
 						}
 						delete(h.rooms, roomID)
 						delete(h.dirtyRooms, roomID)
-						log.Printf("🧹 房间 %s 已空，自动清理", roomID)
+						// 清除该房间的访问历史记录（大厅不再显示）
+						database.DB.Where("room_id = ?", roomID).Delete(&models.History{})
+						log.Printf("🧹 房间 %s 已空，自动清理（含历史记录）", roomID)
 					}
 				}
 			}
