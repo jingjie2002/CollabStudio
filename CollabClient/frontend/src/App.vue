@@ -23,33 +23,49 @@
       />
 
       <Lobby
-          v-else-if="currentView === 'lobby'"
+          v-if="currentView === 'lobby'"
           :user="currentUser"
           @enter-room="handleEnterRoom"
           @logout="handleLogout"
       />
 
-      <Workspace
-          v-else-if="currentView === 'workspace'"
-          :username="currentUser"
-          :initial-room="targetRoom"
-          @logout="handleLogout"
-      />
+      <!-- 多标签工作区 -->
+      <div v-if="openRooms.length > 0" class="multi-workspace" :class="{ hidden: currentView !== 'workspace' }">
+        <TabBar
+            :tabs="openRooms"
+            :activeRoom="activeRoom"
+            @switch="switchRoom"
+            @close="closeRoom"
+            @add="handleAddRoom"
+        />
+        <Workspace
+            v-for="room in openRooms"
+            :key="room.roomId"
+            v-show="room.roomId === activeRoom"
+            :username="currentUser"
+            :initial-room="room.roomId"
+            @logout="handleLogout"
+        />
+      </div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import Login from './components/Login.vue'
 import Lobby from './components/Lobby.vue'
 import Workspace from './components/Workspace.vue'
+import TabBar from './components/TabBar.vue'
 import { initSettings } from './settings'
 
 // 视图状态：login -> lobby -> workspace
 const currentView = ref('login')
 const currentUser = ref(null)
-const targetRoom = ref('demo-room')
+
+// 多房间标签页状态
+const openRooms = reactive([])  // [{ roomId: 'xxx' }, ...]
+const activeRoom = ref('')
 
 // 连接状态
 const isConnecting = ref(true)
@@ -57,7 +73,6 @@ const connectionFailed = ref(false)
 const loadingHint = ref('正在检测后端服务...')
 
 // 服务可用性检查
-// 使用 Wails Go 绑定调用 Go 端的健康检查，绕过 WebView CORS 限制
 const checkServerAvailability = async () => {
   const maxRetries = 10
   const retryInterval = 500
@@ -65,10 +80,9 @@ const checkServerAvailability = async () => {
   for (let i = 0; i < maxRetries; i++) {
     loadingHint.value = `正在检测后端服务... (${i + 1}/${maxRetries})`
     try {
-      // 通过 Wails Go 绑定调用 Go 端的 HTTP 健康检查
       const ok = await window.go.main.App.CheckServerHealth()
       if (ok) {
-        console.log('✅ [App] 后端服务已就绪 (via Go binding)')
+        console.log('✅ [App] 后端服务已就绪')
         isConnecting.value = false
         connectionFailed.value = false
         return
@@ -79,12 +93,10 @@ const checkServerAvailability = async () => {
     await new Promise(resolve => setTimeout(resolve, retryInterval))
   }
 
-  // 超时
   loadingHint.value = '连接超时'
   connectionFailed.value = true
 }
 
-// 重试连接
 const retryConnection = () => {
   connectionFailed.value = false
   checkServerAvailability()
@@ -100,25 +112,63 @@ const handleLoginSuccess = (username) => {
   console.log("[App] Login success:", username)
   currentUser.value = username
   currentView.value = 'lobby'
-  // 通知 Go 后端已登录，启用关闭拦截
   try { window.go.main.App.SetLoggedIn(true) } catch(e) {}
 }
 
-// 处理进入房间
+// 处理进入房间（多标签：新开或切换）
 const handleEnterRoom = (roomId) => {
   console.log("[App] Entering room:", roomId)
-  if (roomId) {
-    targetRoom.value = roomId
+  if (!roomId) return
+
+  // 如果该房间已打开，直接切换
+  const existing = openRooms.find(r => r.roomId === roomId)
+  if (existing) {
+    activeRoom.value = roomId
+    currentView.value = 'workspace'
+    return
   }
+
+  // 新开标签页
+  openRooms.push({ roomId })
+  activeRoom.value = roomId
   currentView.value = 'workspace'
 }
 
-// 处理退出登录
+// 切换标签页
+const switchRoom = (roomId) => {
+  activeRoom.value = roomId
+}
+
+// 关闭标签页
+const closeRoom = (roomId) => {
+  const idx = openRooms.findIndex(r => r.roomId === roomId)
+  if (idx === -1) return
+
+  openRooms.splice(idx, 1)
+
+  if (openRooms.length === 0) {
+    // 最后一个标签页关闭，回到大厅
+    activeRoom.value = ''
+    currentView.value = 'lobby'
+  } else if (activeRoom.value === roomId) {
+    // 关闭的是当前标签，切换到相邻标签
+    const newIdx = Math.min(idx, openRooms.length - 1)
+    activeRoom.value = openRooms[newIdx].roomId
+  }
+}
+
+// 返回大厅加入新房间（保持已有标签）
+const handleAddRoom = () => {
+  currentView.value = 'lobby'
+}
+
+// 处理退出登录（关闭所有标签）
 const handleLogout = () => {
   console.log("[App] User logged out")
   currentUser.value = null
+  openRooms.splice(0, openRooms.length)
+  activeRoom.value = ''
   currentView.value = 'login'
-  // 退出登录后取消关闭拦截
   try { window.go.main.App.SetLoggedIn(false) } catch(e) {}
 }
 </script>
@@ -138,6 +188,17 @@ body, html {
 #app-root {
   width: 100vw;
   height: 100vh;
+}
+
+.multi-workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+.multi-workspace.hidden {
+  display: none;
 }
 
 /* 滚动条美化 */
