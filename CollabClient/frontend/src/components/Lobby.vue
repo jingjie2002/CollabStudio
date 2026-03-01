@@ -16,7 +16,9 @@ const fetchHistory = async () => {
   isLoading.value = true
   try {
     const targetUrl = `${serverConfig.getHttpUrl()}/history?username=${encodeURIComponent(props.user)}`
-    const res = await fetch(targetUrl)
+    const res = await fetch(targetUrl, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+    })
     const data = await res.json()
     if (data.history) {
       historyList.value = data.history
@@ -36,7 +38,10 @@ const joinFromHistory = (roomID) => {
 const deleteHistory = async (id, event) => {
   event.stopPropagation()
   try {
-    await fetch(`${serverConfig.getHttpUrl()}/history/${id}`, { method: 'DELETE' })
+    await fetch(`${serverConfig.getHttpUrl()}/history/${id}`, { 
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+    })
     historyList.value = historyList.value.filter(h => h.id !== id)
   } catch (e) {
     console.error(e)

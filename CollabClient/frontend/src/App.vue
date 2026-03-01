@@ -176,6 +176,7 @@ const handleAddRoom = () => {
 // 处理退出登录（关闭所有标签）
 const handleLogout = () => {
   console.log("[App] User logged out")
+  localStorage.removeItem('jwt_token')
   currentUser.value = null
   openRooms.splice(0, openRooms.length)
   activeRoom.value = ''

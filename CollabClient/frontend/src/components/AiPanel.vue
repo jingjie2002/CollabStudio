@@ -115,7 +115,10 @@ const sendToAI = async (prompt, actionLabel) => {
     const baseUrl = serverConfig.getHttpUrl()
     const resp = await fetch(`${baseUrl}/api/ai/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+      },
       body: JSON.stringify({
         messages: aiMessages,
         apiUrl: settings.ai.apiUrl || '',

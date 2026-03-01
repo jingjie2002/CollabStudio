@@ -425,7 +425,13 @@ const handleChatImageUpload = async (event) => {
   const formData = new FormData()
   formData.append('image', file)
   try {
-    const response = await fetch(`${serverConfig.getHttpUrl()}/upload`, { method: 'POST', body: formData })
+    const response = await fetch(`${serverConfig.getHttpUrl()}/upload`, { 
+      method: 'POST', 
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+      },
+      body: formData 
+    })
     const data = await response.json()
     if (data.url) {
       const msgContent = `image:${data.url}`
