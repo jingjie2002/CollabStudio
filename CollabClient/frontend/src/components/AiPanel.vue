@@ -193,6 +193,13 @@ const formatContent = (text) => {
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n/g, '<br>')
 }
+
+const executeExternalQuery = (query) => {
+  userInput.value = ''
+  sendToAI(query)
+}
+
+defineExpose({ executeExternalQuery })
 </script>
 
 <style scoped>

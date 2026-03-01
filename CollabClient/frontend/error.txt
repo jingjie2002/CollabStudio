@@ -1,0 +1,39 @@
+
+> frontend@0.0.0 build
+> vite build
+
+[36mvite v3.2.11 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 19 modules transformed.
+[31m[vite:vue] [vue/compiler-sfc] Unexpected token (140:0)
+
+F:/goworkstation/MyGradProject2/MyGradProject/CollabClient/frontend/src/components/AiPanel.vue
+197|  }
+198|  
+199|  defineExpose({ executeExternalQuery })
+   |                                          ^
+200|  </script>
+   |  ^
+201|  [39m
+file: [36mF:/goworkstation/MyGradProject2/MyGradProject/CollabClient/frontend/src/components/AiPanel.vue:140:0[39m
+[31merror during build:
+SyntaxError: [vue/compiler-sfc] Unexpected token (140:0)
+
+F:/goworkstation/MyGradProject2/MyGradProject/CollabClient/frontend/src/components/AiPanel.vue
+197|  }
+198|  
+199|  defineExpose({ executeExternalQuery })
+   |                                          ^
+200|  </script>
+   |  ^
+201|  
+    at constructor (F:\goworkstation\MyGradProject2\MyGradProject\CollabClient\frontend\node_modules\@babel\parser\lib\index.js:367:19)
+    at Parser.raise (F:\goworkstation\MyGradProject2\MyGradProject\CollabClient\frontend\node_modules\@babel\parser\lib\index.js:6624:19)
+    at Parser.unexpected (F:\goworkstation\MyGradProject2\MyGradProject\CollabClient\frontend\node_modules\@babel\parser\lib\index.js:6644:16)
+    at Parser.parseExprAtom (F:\goworkstation\MyGradProject2\MyGradProject\CollabClient\frontend\node_modules\@babel\parser\lib\index.js:11508:22)
+    at Parser.parseExprSubscripts (F:\goworkstation\MyGradProject2\MyGradProject\CollabClient\frontend\node_modules\@babel\parser\lib\index.js:11145:23)
+    at Parser.parseUpdate (F:\goworkstation\MyGradProject2\MyGradProject\CollabClient\frontend\node_modules\@babel\parser\lib\index.js:11130:21)
+    at Parser.parseMaybeUnary (F:\goworkstation\MyGradProject2\MyGradProject\CollabClient\frontend\node_modules\@babel\parser\lib\index.js:11110:23)
+    at Parser.parseMaybeUnaryOrPrivate (F:\goworkstation\MyGradProject2\MyGradProject\CollabClient\frontend\node_modules\@babel\parser\lib\index.js:10963:61)
+    at Parser.parseExprOps (F:\goworkstation\MyGradProject2\MyGradProject\CollabClient\frontend\node_modules\@babel\parser\lib\index.js:10968:23)
+    at Parser.parseMaybeConditional (F:\goworkstation\MyGradProject2\MyGradProject\CollabClient\frontend\node_modules\@babel\parser\lib\index.js:10945:23)[39m

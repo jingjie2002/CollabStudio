@@ -72,7 +72,7 @@
         </div>
 
         <!-- 协作面板（用户列表 + 聊天室） -->
-        <template v-if="sidebarTab === 'collab'">
+        <div v-show="sidebarTab === 'collab'" class="collab-container">
         <!-- 上半部分：用户列表 -->
         <div class="panel users-panel">
           <div class="panel-header">
@@ -137,10 +137,10 @@
             </div>
           </div>
         </div>
-        </template>
+        </div>
 
         <!-- AI 助手面板 -->
-        <AiPanel v-if="sidebarTab === 'ai'" :getEditorContent="getEditorText" @insert="handleInsertFromAI" />
+        <AiPanel v-show="sidebarTab === 'ai'" :getEditorContent="getEditorText" @insert="handleInsertFromAI" ref="aiPanelRef" />
       </aside>
     </div>
 
@@ -183,6 +183,7 @@ const props = defineProps({
 // --- 状态变量定义 ---
 const editorRef = ref(null)
 const chatBoxRef = ref(null)
+const aiPanelRef = ref(null)
 const socket = ref(null)
 const isConnected = ref(false)
 const roomID = ref(props.initialRoom ? props.initialRoom.trim() : 'demo-room')
@@ -411,9 +412,33 @@ const handleSaveFile = async () => {
 // --- 聊天功能 ---
 const sendChatMessage = () => {
   if (!chatInput.value.trim() || !socket.value) return
-  socket.value.send(JSON.stringify({ type: 'chat', message: chatInput.value, sender: props.username }))
+  const input = chatInput.value
+  
+  // 1. 发送到公共聊天室保持同步可见
+  socket.value.send(JSON.stringify({ type: 'chat', message: input, sender: props.username }))
   chatInput.value = ''
   showEmojiPicker.value = false
+
+  // 2. 检测全局 @AI 唤醒逻辑
+  const aiRegex = /@AI\s*/i
+  if (aiRegex.test(input)) {
+    // 切花前台面板到 AI
+    sidebarTab.value = 'ai'
+    if (aiPanelRef.value) {
+      if (input.includes('总结聊天') || input.includes('总结沟通') || input.includes('总结讨论')) {
+        // 请求总结全频道的历史记录
+        const historyText = chatMessages.value
+          .map(msg => `[${msg.sender}]: ${msg.text}`)
+          .join('\n')
+        const prompt = `${input}\n\n【下面是近期的聊天区所有发送的历史记录，请根据这些内容提供总结】：\n${historyText}`
+        aiPanelRef.value.executeExternalQuery(prompt)
+      } else {
+        // 剪裁掉 @AI 指令本身，剩下的全部交给 AI
+        const prompt = input.replace(aiRegex, '').trim() || input
+        aiPanelRef.value.executeExternalQuery(prompt)
+      }
+    }
+  }
 }
 
 const insertEmoji = (emoji) => { chatInput.value += emoji }
@@ -587,6 +612,7 @@ onUnmounted(() => { if (socket.value) socket.value.close() })
 .chat-image { max-width: 100%; border-radius: 4px; cursor: pointer; margin-top: 4px; }
 
 /* 聊天输入区 */
+.collab-container { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .chat-footer { padding: 10px; border-top: 1px solid var(--border-color); background: var(--bg-panel); position: relative; }
 .toolbar-row { display: flex; gap: 8px; margin-bottom: 8px; }
 .icon-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; transition: color 0.2s; }
