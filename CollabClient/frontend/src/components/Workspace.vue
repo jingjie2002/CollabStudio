@@ -443,8 +443,19 @@ const handleChatImageUpload = async (event) => {
 
 // ================= 处理 AI 插入文本 =================
 const handleInsertFromAI = (text) => {
-  if (editorRef.value) {
+  console.log("[Workspace] Attempting to insert text from AI:", text ? text.substring(0, 50) + '...' : 'empty')
+  if (!editorRef.value) {
+    console.warn("[Workspace] editorRef is null, cannot insert!")
+    return
+  }
+  try {
+    // 调用子组件 Editor.vue 暴露的方法
     editorRef.value.insertTextAtCursor(text)
+    // 可选：给个成功提示
+    console.log("[Workspace] Insert to editor successful!")
+  } catch (e) {
+    console.error("[Workspace] Insert failed:", e)
+    alert("插入失败: " + e.message)
   }
 }
 

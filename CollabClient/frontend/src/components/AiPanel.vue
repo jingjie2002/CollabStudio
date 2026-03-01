@@ -30,7 +30,7 @@
         </div>
         <div class="msg-content-wrapper">
           <div class="msg-body" v-html="formatContent(msg.content)"></div>
-          <button v-if="msg.role === 'assistant'" class="insert-btn" @click="$emit('insert', msg.content)" title="插入到编辑器">
+          <button v-if="msg.role === 'assistant'" class="insert-btn" @click="$emit('insert', formatContent(msg.content))" title="插入到编辑器">
             <i class="ri-insert-row-bottom"></i> 插入到文档
           </button>
         </div>
