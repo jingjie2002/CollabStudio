@@ -113,6 +113,8 @@ func AIChat(c *gin.Context) {
 
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
+	httpReq.Header.Set("Accept", "text/event-stream")
+	httpReq.Header.Set("X-Accel-Buffering", "no")
 
 	// 配置 HTTP 客户端：必须继承系统代理环境 (http.ProxyFromEnvironment)
 	// 这样当用户开启科学上网代理时，后端的请求才能透传
