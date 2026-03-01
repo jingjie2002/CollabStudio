@@ -68,6 +68,20 @@ func findOrCreateEnvFile() string {
 		return ".env"
 	}
 
+	// 4. 终极回退：用户配置目录（%AppData%/CollabServer/.env）
+	if configDir, err := os.UserConfigDir(); err == nil {
+		appConfigDir := filepath.Join(configDir, "CollabServer")
+		os.MkdirAll(appConfigDir, 0755)
+		envPath := filepath.Join(appConfigDir, ".env")
+		if _, statErr := os.Stat(envPath); statErr == nil {
+			return envPath
+		}
+		if generateDefaultEnv(envPath) == nil {
+			fmt.Printf("🆕 [Config] 已在用户目录自动生成 .env: %s\n", envPath)
+			return envPath
+		}
+	}
+
 	fmt.Println("⚠️ [Config] 无法创建 .env，使用系统环境变量")
 	return ""
 }

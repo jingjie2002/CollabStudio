@@ -102,6 +102,10 @@ const sendToAI = async (prompt, actionLabel) => {
   scrollToBottom()
 
   loading.value = true
+  // 预先创建 assistant 消息占位，逐步填充
+  const assistantMsg = { role: 'assistant', content: '' }
+  messages.value.push(assistantMsg)
+
   try {
     const aiMessages = [
       { role: 'system', content: '你是 CollabStudio 的 AI 助手，帮助用户处理文档编辑、翻译和总结任务。回答要简洁专业。' },
@@ -120,14 +124,44 @@ const sendToAI = async (prompt, actionLabel) => {
       })
     })
 
-    const data = await resp.json()
-    if (resp.ok) {
-      messages.value.push({ role: 'assistant', content: data.content })
-    } else {
-      messages.value.push({ role: 'assistant', content: `❌ ${data.error || '请求失败'}` })
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}))
+      assistantMsg.content = `❌ ${errData.error || '请求失败'}`
+      return
+    }
+
+    // SSE 流式读取
+    const reader = resp.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() // 保留未完整的行
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const data = line.slice(6)
+        if (data === '[DONE]') break
+        try {
+          const chunk = JSON.parse(data)
+          if (chunk.content) {
+            assistantMsg.content += chunk.content
+            scrollToBottom()
+          }
+        } catch (e) { /* 跳过无法解析的行 */ }
+      }
+    }
+
+    if (!assistantMsg.content) {
+      assistantMsg.content = '❌ AI 未返回有效回复'
     }
   } catch (e) {
-    messages.value.push({ role: 'assistant', content: `❌ 连接 AI 服务失败: ${e.message}` })
+    assistantMsg.content = `❌ 连接 AI 服务失败: ${e.message}`
   } finally {
     loading.value = false
     scrollToBottom()

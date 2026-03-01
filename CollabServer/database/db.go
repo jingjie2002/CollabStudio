@@ -28,16 +28,21 @@ func Connect() {
 		}
 	}
 
-	// 开启 LogMode(logger.Info) 可以看到 SQL 语句，调试很方便
+	// 日志级别：生产环境只记录警告和错误，开发环境记录全部 SQL
+	logLevel := logger.Info
+	if os.Getenv("GIN_MODE") == "release" {
+		logLevel = logger.Warn
+	}
+
 	DB, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logLevel),
 	})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
 	// 🛠️ 更新：自动迁移 User, Document 和 Message
-	err = DB.AutoMigrate(&models.User{}, &models.Document{}, &models.Message{})
+	err = DB.AutoMigrate(&models.User{}, &models.Document{}, &models.Message{}, &models.History{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}

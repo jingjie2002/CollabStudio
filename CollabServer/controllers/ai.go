@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bufio"
 	"bytes"
 	"collab-server/config"
 	"encoding/json"
@@ -8,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -58,7 +60,7 @@ type openAIResponse struct {
 	} `json:"error,omitempty"`
 }
 
-// AIChat 处理 AI 对话请求
+// AIChat 处理 AI 对话请求（SSE 流式输出）
 func AIChat(c *gin.Context) {
 	var req AIChatRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -92,11 +94,11 @@ func AIChat(c *gin.Context) {
 		return
 	}
 
-	// 构建 OpenAI 兼容请求
+	// 构建 OpenAI 兼容请求（流式）
 	openAIReq := openAIRequest{
 		Model:    model,
 		Messages: req.Messages,
-		Stream:   false,
+		Stream:   true,
 	}
 
 	body, _ := json.Marshal(openAIReq)
@@ -112,7 +114,7 @@ func AIChat(c *gin.Context) {
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
 
-	client := &http.Client{Timeout: 60 * time.Second}
+	client := &http.Client{Timeout: 120 * time.Second}
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		log.Printf("❌ [AI] API 请求失败: %v", err)
@@ -121,32 +123,53 @@ func AIChat(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	respBody, _ := io.ReadAll(resp.Body)
-
 	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
 		log.Printf("❌ [AI] API 返回异常 (%d): %s", resp.StatusCode, string(respBody))
 		c.JSON(resp.StatusCode, gin.H{"error": fmt.Sprintf("AI 服务返回错误 (%d)", resp.StatusCode), "detail": string(respBody)})
 		return
 	}
 
-	// 解析响应
-	var openAIResp openAIResponse
-	if err := json.Unmarshal(respBody, &openAIResp); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "解析 AI 响应失败"})
-		return
-	}
+	// SSE 流式输出到前端
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("Access-Control-Allow-Origin", "*")
 
-	if openAIResp.Error != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": openAIResp.Error.Message})
-		return
-	}
+	flusher, _ := c.Writer.(http.Flusher)
+	scanner := bufio.NewScanner(resp.Body)
 
-	if len(openAIResp.Choices) == 0 {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "AI 未返回有效回复"})
-		return
-	}
+	for scanner.Scan() {
+		line := scanner.Text()
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+		data := strings.TrimPrefix(line, "data: ")
+		if data == "[DONE]" {
+			fmt.Fprintf(c.Writer, "data: [DONE]\n\n")
+			if flusher != nil {
+				flusher.Flush()
+			}
+			break
+		}
 
-	c.JSON(http.StatusOK, gin.H{
-		"content": openAIResp.Choices[0].Message.Content,
-	})
+		// 解析 streaming chunk
+		var chunk struct {
+			Choices []struct {
+				Delta struct {
+					Content string `json:"content"`
+				} `json:"delta"`
+			} `json:"choices"`
+		}
+		if json.Unmarshal([]byte(data), &chunk) == nil && len(chunk.Choices) > 0 {
+			content := chunk.Choices[0].Delta.Content
+			if content != "" {
+				chunkJSON, _ := json.Marshal(map[string]string{"content": content})
+				fmt.Fprintf(c.Writer, "data: %s\n\n", chunkJSON)
+				if flusher != nil {
+					flusher.Flush()
+				}
+			}
+		}
+	}
 }

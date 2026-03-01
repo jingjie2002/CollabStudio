@@ -128,6 +128,12 @@ const handleEnterRoom = (roomId) => {
     return
   }
 
+  // 标签数量上限（每个标签持有 WebSocket + 编辑器实例，过多会影响性能）
+  if (openRooms.length >= 8) {
+    alert('最多同时打开 8 个房间，请先关闭其他标签')
+    return
+  }
+
   // 新开标签页
   openRooms.push({ roomId })
   activeRoom.value = roomId

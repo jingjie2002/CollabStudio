@@ -4,6 +4,7 @@ import (
 	"collab-server/config"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -48,7 +49,12 @@ var upgrader = websocket.Upgrader{
 		// 从环境变量读取白名单
 		allowedOrigins := config.GetEnv("CORS_ORIGINS", "")
 		if allowedOrigins == "" {
-			// 未配置时，开发模式全放行（与 router.go setupCORS 行为一致）
+			// 生产模式下，空白名单 → 拒绝（防止部署时忘配）
+			if os.Getenv("GIN_MODE") == "release" {
+				log.Printf("❌ WebSocket 生产模式拒绝: CORS_ORIGINS 未配置, origin=%s", origin)
+				return false
+			}
+			// 开发模式全放行
 			log.Println("📡 WebSocket CORS 未配置，开发模式放行:", origin)
 			return true
 		}

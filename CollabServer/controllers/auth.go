@@ -99,6 +99,10 @@ func Login(c *gin.Context) {
 	// 🔐 核心安全点：JWT_SECRET 不再有默认值
 	// 这强制运维人员必须配置 .env 文件，否则 main.go 会拒绝启动
 	jwtSecret := config.GetEnv("JWT_SECRET", "")
+	if jwtSecret == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "服务器未配置密钥，无法签发 Token"})
+		return
+	}
 	tokenString, err := token.SignedString([]byte(jwtSecret))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token 生成失败"})

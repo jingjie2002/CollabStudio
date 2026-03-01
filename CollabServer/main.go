@@ -34,7 +34,13 @@ import (
 //
 // =============================================================================
 func getServerPort() string {
-	// 优先检测 GIN_MODE 环境变量
+	// 优先使用 .env 中的 PORT 配置
+	if envPort := config.GetEnv("PORT", ""); envPort != "" {
+		log.Printf("📋 [环境判定] .env PORT=%s", envPort)
+		return envPort
+	}
+
+	// 检测 GIN_MODE
 	ginMode := os.Getenv("GIN_MODE")
 	if ginMode == "release" {
 		log.Println("🌐 [环境判定] GIN_MODE=release → 使用生产端口 80")
