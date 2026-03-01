@@ -26,6 +26,17 @@
 
         <div class="divider-v"></div>
 
+        <!-- 主题切换 -->
+        <button @click="handleToggleTheme" class="nav-btn" :title="settings.theme === 'dark' ? '切换为浅色' : '切换为深色'">
+          <i :class="settings.theme === 'dark' ? 'ri-moon-line' : 'ri-sun-line'"></i>
+        </button>
+        <!-- 设置 -->
+        <button @click="showSettings = true" class="nav-btn" title="设置">
+          <i class="ri-settings-3-line"></i>
+        </button>
+
+        <div class="divider-v"></div>
+
         <div class="connection-status" :class="{ online: isConnected }" :title="isConnected ? '连接正常' : '已离线'">
           <span class="dot"></span>
           {{ isConnected ? '已连接' : '离线' }}
@@ -42,7 +53,7 @@
     <div class="main-content">
       <!-- 左侧：编辑器 -->
       <main class="editor-area">
-        <div class="editor-wrapper">
+        <div class="editor-wrapper" :style="editorFontStyle">
           <Editor
               ref="editorRef"
               @update="handleDocChange"
@@ -54,6 +65,18 @@
 
       <!-- 右侧：侧边栏 -->
       <aside class="sidebar">
+        <!-- 侧边栏标签切换 -->
+        <div class="sidebar-tabs">
+          <button :class="{ active: sidebarTab === 'collab' }" @click="sidebarTab = 'collab'">
+            <i class="ri-team-line"></i> 协作
+          </button>
+          <button :class="{ active: sidebarTab === 'ai' }" @click="sidebarTab = 'ai'">
+            <i class="ri-robot-line"></i> AI
+          </button>
+        </div>
+
+        <!-- 协作面板（用户列表 + 聊天室） -->
+        <template v-if="sidebarTab === 'collab'">
         <!-- 上半部分：用户列表 -->
         <div class="panel users-panel">
           <div class="panel-header">
@@ -118,6 +141,10 @@
             </div>
           </div>
         </div>
+        </template>
+
+        <!-- AI 助手面板 -->
+        <AiPanel v-if="sidebarTab === 'ai'" :getEditorContent="getEditorText" />
       </aside>
     </div>
 
@@ -134,16 +161,22 @@
         </div>
       </div>
     </div>
+
+    <!-- ================= 4. 设置面板 ================= -->
+    <SettingsPanel :visible="showSettings" @close="showSettings = false" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import Editor from './Editor.vue'
+import SettingsPanel from './SettingsPanel.vue'
+import AiPanel from './AiPanel.vue'
 // 引入所有需要的后端 Go 方法
 import { SaveFile, OpenFile, IsHostUser, ConfirmExit } from '../../wailsjs/go/main/App'
 import { EventsOn } from '../../wailsjs/runtime'
 import { serverConfig } from '../store'
+import { settings, toggleTheme } from '../settings'
 import 'remixicon/fonts/remixicon.css'
 
 const props = defineProps({
@@ -165,6 +198,7 @@ const remoteCursors = new Map()
 
 const showEmojiPicker = ref(false)
 const chatFileInput = ref(null)
+const sidebarTab = ref('collab')  // 'collab' | 'ai'
 const emojiList = ['😀','😂','😅','🥰','😎','🤔','😐','😭','😱','😡','👍','👎','👋','🙏','🚀','🔥','🎉','❤️','💔','💩']
 
 // 节流控制 (防止打字太快刷屏)
@@ -175,6 +209,21 @@ const THROTTLE_DELAY = 40
 // 房主保护状态
 const isHost = ref(false)
 const showExitModal = ref(false)
+const showSettings = ref(false)
+
+// 编辑器字体样式（响应式跟随设置面板）
+const editorFontStyle = computed(() => ({
+  '--editor-font-size': settings.fontSize + 'px',
+  '--editor-font-family': settings.fontFamily
+}))
+
+const handleToggleTheme = () => toggleTheme()
+
+// 获取编辑器纯文本内容（供 AI 面板使用）
+const getEditorText = () => {
+  if (!editorRef.value) return ''
+  return editorRef.value.getText()
+}
 
 // 🟢 UUID 消息隔离：存储服务器分配的唯一客户端 ID
 let clientUUID = ''
@@ -468,6 +517,30 @@ onUnmounted(() => { if (socket.value) socket.value.close() })
 .editor-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .editor-wrapper { flex: 1; overflow: hidden; position: relative; }
 .sidebar { width: var(--sidebar-width); background: var(--bg-panel); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; }
+
+/* 侧边栏标签切换 */
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+.sidebar-tabs button {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+.sidebar-tabs button:hover { color: var(--text-main); background: var(--bg-hover); }
+.sidebar-tabs button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
 
 /* 面板通用 */
 .panel { display: flex; flex-direction: column; }

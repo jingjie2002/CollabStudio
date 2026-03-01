@@ -44,6 +44,7 @@ import { ref, onMounted } from 'vue'
 import Login from './components/Login.vue'
 import Lobby from './components/Lobby.vue'
 import Workspace from './components/Workspace.vue'
+import { initSettings } from './settings'
 
 // 视图状态：login -> lobby -> workspace
 const currentView = ref('login')
@@ -90,6 +91,7 @@ const retryConnection = () => {
 }
 
 onMounted(() => {
+  initSettings()
   checkServerAvailability()
 })
 

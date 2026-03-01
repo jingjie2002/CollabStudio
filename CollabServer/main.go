@@ -80,11 +80,12 @@ func main() {
 	// ==========================================================================
 	config.LoadConfig()
 
-	// 🔐 安全检查：JWT_SECRET 必须配置，否则拒绝启动
-	// 这是防止生产环境用默认密钥的硬性保障
+	// 🔐 JWT_SECRET 检查（config.LoadConfig 已自动生成，此处仅做日志确认）
 	jwtSecret := config.GetEnv("JWT_SECRET", "")
 	if jwtSecret == "" {
-		log.Fatal("❌ 致命错误: JWT_SECRET 未配置！请在 .env 文件中设置此项。拒绝启动。")
+		log.Println("⚠️ JWT_SECRET 为空，认证功能将不可用。请检查 .env 配置。")
+	} else {
+		log.Println("✅ JWT_SECRET 已就绪")
 	}
 
 	// ==========================================================================
@@ -220,6 +221,7 @@ func main() {
 	r.POST("/login", controllers.Login)
 	r.GET("/history", controllers.GetHistory)
 	r.POST("/upload", controllers.UploadImage)
+	r.POST("/api/ai/chat", controllers.AIChat)
 
 	// WebSocket 端点
 	r.GET("/ws", func(c *gin.Context) {

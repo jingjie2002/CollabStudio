@@ -181,12 +181,32 @@ func (a *App) waitForHealthCheck() bool {
 // =============================================================================
 // killBackendServer 杀死后端子进程
 // =============================================================================
+// 先尝试 Process.Kill()，如果失败或留下孤儿进程，
+// 使用 taskkill /F /T /PID 强制清理整个进程树（Windows）
+// =============================================================================
 func (a *App) killBackendServer() {
-	if a.serverCmd != nil && a.serverCmd.Process != nil {
-		log.Printf("🛑 正在关闭后台服务 (PID: %d)...", a.serverCmd.Process.Pid)
-		a.serverCmd.Process.Kill()
-		a.serverCmd = nil
+	if a.serverCmd == nil || a.serverCmd.Process == nil {
+		return
 	}
+
+	pid := a.serverCmd.Process.Pid
+	log.Printf("🛑 正在关闭后台服务 (PID: %d)...", pid)
+
+	// 第一步：常规 Kill
+	a.serverCmd.Process.Kill()
+
+	// 第二步（Windows）：如果常规 Kill 可能遗留子进程，用 taskkill 清理进程树
+	if runtime.GOOS == "windows" {
+		killCmd := exec.Command("taskkill", "/F", "/T", "/PID", fmt.Sprintf("%d", pid))
+		killCmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+		if err := killCmd.Run(); err != nil {
+			log.Printf("⚠️ taskkill fallback: %v（进程可能已退出）", err)
+		} else {
+			log.Printf("✅ 进程树已清理 (PID: %d)", pid)
+		}
+	}
+
+	a.serverCmd = nil
 }
 
 // SaveFile 保存文件

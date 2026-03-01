@@ -186,13 +186,13 @@ onBeforeUnmount(() => {
 <style>
 /* CSS 保持不变 */
 .editor-container { height: 100%; width: 100%; display: flex; flex-direction: column; }
-.editor-content { flex: 1; overflow-y: auto; padding: 10px 20px; color: #e5e7eb; font-family: 'Consolas', monospace, sans-serif; }
+.editor-content { flex: 1; overflow-y: auto; padding: 10px 20px; color: var(--text-main, #e5e7eb); font-family: var(--editor-font-family, 'Consolas'), monospace, sans-serif; font-size: var(--editor-font-size, 15px); }
 .tiptap-editor { outline: none; min-height: 100%; position: relative; }
-.tiptap h1 { font-size: 1.8rem; font-weight: bold; margin: 0.5em 0; color: #fff; }
-.tiptap h2 { font-size: 1.4rem; font-weight: bold; margin: 0.5em 0; color: #ddd; }
+.tiptap h1 { font-size: 1.8em; font-weight: bold; margin: 0.5em 0; color: var(--text-main); }
+.tiptap h2 { font-size: 1.4em; font-weight: bold; margin: 0.5em 0; color: var(--text-main); }
 .tiptap ul, .tiptap ol { padding-left: 1.2em; }
-.tiptap blockquote { border-left: 3px solid #3b82f6; padding-left: 1rem; color: #9ca3af; font-style: italic; }
-.tiptap code { background-color: #374151; padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; }
+.tiptap blockquote { border-left: 3px solid var(--primary-color, #3b82f6); padding-left: 1rem; color: var(--text-muted, #9ca3af); font-style: italic; }
+.tiptap code { background-color: var(--bg-hover, #374151); padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; }
 .tiptap p { margin: 0.5em 0; line-height: 1.6; }
 .tiptap img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; display: block; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
 .tiptap img.ProseMirror-selectednode { outline: 3px solid #3b82f6; }

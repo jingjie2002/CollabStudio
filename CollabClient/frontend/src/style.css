@@ -1,5 +1,5 @@
-/* 全局变量定义：统一色调 */
-:root {
+/* 全局变量定义：深色主题（默认） */
+:root, [data-theme="dark"] {
     /* 核心色彩 */
     --primary-color: #3b82f6;
     --primary-hover: #2563eb;
@@ -19,6 +19,29 @@
     /* 布局参数 */
     --header-height: 56px;
     --sidebar-width: 280px;
+
+    /* 滚动条 */
+    --scrollbar-thumb: #52525b;
+    --scrollbar-hover: #71717a;
+}
+
+/* 浅色主题 */
+[data-theme="light"] {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --danger-color: #dc2626;
+    --success-color: #059669;
+
+    --bg-main: #f4f4f5;
+    --bg-panel: #ffffff;
+    --bg-hover: #e4e4e7;
+    --border-color: #d4d4d8;
+
+    --text-main: #18181b;
+    --text-muted: #71717a;
+
+    --scrollbar-thumb: #a1a1aa;
+    --scrollbar-hover: #71717a;
 }
 
 body {
@@ -41,12 +64,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #52525b;
+    background: var(--scrollbar-thumb);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #71717a;
+    background: var(--scrollbar-hover);
 }
 
 /* 通用按钮样式重置 */
