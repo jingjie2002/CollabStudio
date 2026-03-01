@@ -29,7 +29,6 @@ func LoadConfig() {
 
 	// 确保关键密钥存在（即使 .env 文件中遗漏了）
 	ensureSecret("JWT_SECRET", envPath)
-	ensureSecret("ADMIN_PASSWORD", envPath)
 }
 
 // GetEnv 获取具体的配置项，如果没找到就用默认值
@@ -78,7 +77,6 @@ func findOrCreateEnvFile() string {
 // =============================================================================
 func generateDefaultEnv(path string) error {
 	jwtSecret := generateRandomKey(32)
-	adminPwd := generateRandomKey(16)
 
 	content := fmt.Sprintf(`# =============================================================================
 # CollabServer 配置（自动生成）
@@ -108,10 +106,7 @@ UPLOAD_DIR=uploads
 
 # 前端静态资源目录
 DIST_PATH=./dist
-
-# 管理员密码（自动生成）
-ADMIN_PASSWORD=%s
-`, jwtSecret, adminPwd)
+`, jwtSecret)
 
 	return os.WriteFile(path, []byte(content), 0644)
 }

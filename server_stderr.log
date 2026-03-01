@@ -1019,3 +1019,501 @@
 
 2026/03/01 14:00:15 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:61
 [0m[33m[6.355ms] [34;1m[rows:1][0m INSERT INTO `documents` (`created_at`,`updated_at`,`deleted_at`,`room_id`,`content`) VALUES ("2026-03-01 14:00:15.301","2026-03-01 14:00:15.301",NULL,"demo-room1","<p>321136544523</p><p>45656456</p><p>14324564</p><p>486454</p><p>4123123415641123584</p>") ON CONFLICT (`room_id`) DO UPDATE SET `content`=`excluded`.`content`,`updated_at`=`excluded`.`updated_at` RETURNING `id`
+2026/03/01 14:09:04 main.go:381: 📝 日志文件已启用: F:\goworkstation\MyGradProject2\MyGradProject\server.log
+✅ [Config] 已加载 .env: F:\goworkstation\MyGradProject2\MyGradProject\.env
+2026/03/01 14:09:04 main.go:88: ✅ JWT_SECRET 已就绪
+⏳ 正在连接数据库...
+2026/03/01 14:09:04 db.go:27: ✅ 数据库文件权限已设置为 0644: collab.db
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.591ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="users"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.512ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "users" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `users` LIMIT 1
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_deleted_at"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_username"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="documents"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "documents" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `documents` LIMIT 1
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_deleted_at"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_room_id"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="messages"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "messages" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `messages` LIMIT 1
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.539ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_deleted_at"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_room_id"
+✅ Database connected and migrated successfully!
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="users"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "users" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `users` LIMIT 1
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.595ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_deleted_at"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_username"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="documents"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "documents" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `documents` LIMIT 1
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_deleted_at"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_room_id"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="messages"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "messages" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `messages` LIMIT 1
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_deleted_at"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_room_id"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="histories"
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:2][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "histories" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `histories` LIMIT 1
+
+2026/03/01 14:09:04 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "histories" AND name = "idx_histories_username"
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+2026/03/01 14:09:04 main.go:133: 🔐 CORS 白名单已加载: [http://localhost:5173 http://wails.localhost]
+2026/03/01 14:09:04 main.go:157: 📂 上传目录已就绪: uploads
+[GIN-debug] GET    /uploads/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] HEAD   /uploads/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+2026/03/01 14:09:04 main.go:172: 📂 正在尝试挂载静态资源目录: F:\goworkstation\MyGradProject2\MyGradProject\dist
+2026/03/01 14:09:04 main.go:213: ⚠️ DIST_PATH 指定的目录不存在: F:\goworkstation\MyGradProject2\MyGradProject\dist (原始路径: ./dist)
+[GIN-debug] POST   /register                 --> collab-server/controllers.Register (4 handlers)
+[GIN-debug] POST   /login                    --> collab-server/controllers.Login (4 handlers)
+[GIN-debug] GET    /history                  --> collab-server/controllers.GetHistory (4 handlers)
+[GIN-debug] POST   /upload                   --> collab-server/controllers.UploadImage (4 handlers)
+[GIN-debug] POST   /api/ai/chat              --> collab-server/controllers.AIChat (4 handlers)
+[GIN-debug] GET    /ws                       --> main.main.func3 (4 handlers)
+[GIN-debug] GET    /ping                     --> main.main.func4 (4 handlers)
+2026/03/01 14:09:04 main.go:51: 💻 [环境判定] 本地开发环境 → 使用开发端口 8080
+🚀 CollabServer 已启动: http://0.0.0.0:8080
+2026/03/01 14:09:04 main.go:337: 📡 局域网广播服务已启动 (UDP:9999)，等待被发现...
+[GIN] 2026/03/01 - 14:09:04 | 200 |            0s |       127.0.0.1 | GET      "/ping"
+[GIN] 2026/03/01 - 14:09:04 | 200 |            0s |             ::1 | GET      "/ping"
+[GIN] 2026/03/01 - 14:09:12 | 204 |            0s |             ::1 | OPTIONS  "/login"
+
+2026/03/01 14:09:12 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/auth.go:68
+[0m[33m[1.091ms] [34;1m[rows:1][0m SELECT * FROM `users` WHERE username = "222" AND `users`.`deleted_at` IS NULL ORDER BY `users`.`id` LIMIT 1
+[GIN] 2026/03/01 - 14:09:12 | 200 |     53.3897ms |             ::1 | POST     "/login"
+
+2026/03/01 14:09:12 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/user.go:21
+[0m[33m[0.548ms] [34;1m[rows:3][0m SELECT * FROM `histories` WHERE username = "222" ORDER BY updated_at desc LIMIT 10
+[GIN] 2026/03/01 - 14:09:12 | 200 |       547.6µs |             ::1 | GET      "/history?username=222"
+2026/03/01 14:09:24 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/01 14:09:24 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+[GIN] 2026/03/01 - 14:09:24 | 200 |       538.1µs |             ::1 | GET      "/ws?room=demo-room2&username=222"
+
+2026/03/01 14:09:24 [31;1mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:77 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `documents` WHERE room_id = "demo-room2" AND `documents`.`deleted_at` IS NULL ORDER BY `documents`.`id` LIMIT 1
+2026/03/01 14:09:24 hub.go:118: Join: 222 (Room: demo-room2)
+
+2026/03/01 14:09:24 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:89
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `messages` WHERE room_id = "demo-room2" AND `messages`.`deleted_at` IS NULL ORDER BY id desc LIMIT 50
+
+2026/03/01 14:09:24 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:66
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `histories` WHERE username = "222" AND room_id = "demo-room2" ORDER BY `histories`.`id` LIMIT 1
+
+2026/03/01 14:09:24 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:69
+[0m[33m[6.023ms] [34;1m[rows:1][0m UPDATE `histories` SET `username`="222",`room_id`="demo-room2",`updated_at`="2026-03-01 14:09:24.701" WHERE `id` = 4
+2026/03/01 14:09:25 client.go:102: error: websocket: close 1005 (no status)
+2026/03/01 14:09:25 hub.go:153: 🧹 房间 demo-room2 已空，自动清理
+
+2026/03/01 14:09:25 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/user.go:21
+[0m[33m[0.550ms] [34;1m[rows:3][0m SELECT * FROM `histories` WHERE username = "222" ORDER BY updated_at desc LIMIT 10
+[GIN] 2026/03/01 - 14:09:25 | 200 |       549.7µs |             ::1 | GET      "/history?username=222"
+2026/03/01 14:09:28 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/01 14:09:28 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+[GIN] 2026/03/01 - 14:09:28 | 200 |       571.2µs |             ::1 | GET      "/ws?room=demo-room2&username=222"
+
+2026/03/01 14:09:28 [31;1mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:77 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `documents` WHERE room_id = "demo-room2" AND `documents`.`deleted_at` IS NULL ORDER BY `documents`.`id` LIMIT 1
+2026/03/01 14:09:28 hub.go:118: Join: 222 (Room: demo-room2)
+
+2026/03/01 14:09:28 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:89
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `messages` WHERE room_id = "demo-room2" AND `messages`.`deleted_at` IS NULL ORDER BY id desc LIMIT 50
+
+2026/03/01 14:09:28 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:66
+[0m[33m[0.514ms] [34;1m[rows:1][0m SELECT * FROM `histories` WHERE username = "222" AND room_id = "demo-room2" ORDER BY `histories`.`id` LIMIT 1
+
+2026/03/01 14:09:28 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:69
+[0m[33m[6.186ms] [34;1m[rows:1][0m UPDATE `histories` SET `username`="222",`room_id`="demo-room2",`updated_at`="2026-03-01 14:09:28.237" WHERE `id` = 4
+2026/03/01 14:09:30 client.go:102: error: websocket: close 1005 (no status)
+2026/03/01 14:09:30 hub.go:153: 🧹 房间 demo-room2 已空，自动清理
+
+2026/03/01 14:09:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/user.go:21
+[0m[33m[0.780ms] [34;1m[rows:3][0m SELECT * FROM `histories` WHERE username = "222" ORDER BY updated_at desc LIMIT 10
+[GIN] 2026/03/01 - 14:09:30 | 200 |       780.4µs |             ::1 | GET      "/history?username=222"
+2026/03/01 14:09:30 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/01 14:09:30 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+[GIN] 2026/03/01 - 14:09:30 | 200 |            0s |             ::1 | GET      "/ws?room=demo-room1&username=222"
+
+2026/03/01 14:09:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:77
+[0m[33m[0.543ms] [34;1m[rows:1][0m SELECT * FROM `documents` WHERE room_id = "demo-room1" AND `documents`.`deleted_at` IS NULL ORDER BY `documents`.`id` LIMIT 1
+2026/03/01 14:09:30 hub.go:118: Join: 222 (Room: demo-room1)
+
+2026/03/01 14:09:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:89
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `messages` WHERE room_id = "demo-room1" AND `messages`.`deleted_at` IS NULL ORDER BY id desc LIMIT 50
+
+2026/03/01 14:09:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:66
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `histories` WHERE username = "222" AND room_id = "demo-room1" ORDER BY `histories`.`id` LIMIT 1
+
+2026/03/01 14:09:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:69
+[0m[33m[6.306ms] [34;1m[rows:1][0m UPDATE `histories` SET `username`="222",`room_id`="demo-room1",`updated_at`="2026-03-01 14:09:30.725" WHERE `id` = 5
+2026/03/01 14:09:32 client.go:102: error: websocket: close 1005 (no status)
+
+2026/03/01 14:09:32 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:61
+[0m[33m[6.747ms] [34;1m[rows:1][0m INSERT INTO `documents` (`created_at`,`updated_at`,`deleted_at`,`room_id`,`content`) VALUES ("2026-03-01 14:09:32.032","2026-03-01 14:09:32.032",NULL,"demo-room1","<p>321136544523</p><p>45656456</p><p>14324564</p><p>486454</p><p>4123123415641123584</p>") ON CONFLICT (`room_id`) DO UPDATE SET `content`=`excluded`.`content`,`updated_at`=`excluded`.`updated_at` RETURNING `id`
+2026/03/01 14:09:32 hub.go:153: 🧹 房间 demo-room1 已空，自动清理
+
+2026/03/01 14:09:32 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/user.go:21
+[0m[33m[5.380ms] [34;1m[rows:3][0m SELECT * FROM `histories` WHERE username = "222" ORDER BY updated_at desc LIMIT 10
+[GIN] 2026/03/01 - 14:09:32 | 200 |      5.3798ms |             ::1 | GET      "/history?username=222"
+2026/03/01 14:25:22 main.go:381: 📝 日志文件已启用: F:\goworkstation\MyGradProject2\MyGradProject\server.log
+✅ [Config] 已加载 .env: F:\goworkstation\MyGradProject2\MyGradProject\.env
+2026/03/01 14:25:22 main.go:88: ✅ JWT_SECRET 已就绪
+⏳ 正在连接数据库...
+2026/03/01 14:25:22 db.go:27: ✅ 数据库文件权限已设置为 0644: collab.db
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="users"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "users" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `users` LIMIT 1
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_deleted_at"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_username"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="documents"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "documents" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `documents` LIMIT 1
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_deleted_at"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_room_id"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="messages"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.527ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "messages" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `messages` LIMIT 1
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_deleted_at"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_room_id"
+✅ Database connected and migrated successfully!
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="users"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "users" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `users` LIMIT 1
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_deleted_at"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_username"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="documents"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "documents" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `documents` LIMIT 1
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_deleted_at"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_room_id"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="messages"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "messages" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `messages` LIMIT 1
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_deleted_at"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_room_id"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="histories"
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:2][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "histories" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `histories` LIMIT 1
+
+2026/03/01 14:25:22 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "histories" AND name = "idx_histories_username"
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+2026/03/01 14:25:22 main.go:133: 🔐 CORS 白名单已加载: [http://localhost:5173 http://wails.localhost]
+2026/03/01 14:25:22 main.go:157: 📂 上传目录已就绪: uploads
+[GIN-debug] GET    /uploads/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] HEAD   /uploads/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+2026/03/01 14:25:22 main.go:172: 📂 正在尝试挂载静态资源目录: F:\goworkstation\MyGradProject2\MyGradProject\dist
+2026/03/01 14:25:22 main.go:213: ⚠️ DIST_PATH 指定的目录不存在: F:\goworkstation\MyGradProject2\MyGradProject\dist (原始路径: ./dist)
+[GIN-debug] POST   /register                 --> collab-server/controllers.Register (4 handlers)
+[GIN-debug] POST   /login                    --> collab-server/controllers.Login (4 handlers)
+[GIN-debug] GET    /history                  --> collab-server/controllers.GetHistory (4 handlers)
+[GIN-debug] POST   /upload                   --> collab-server/controllers.UploadImage (4 handlers)
+[GIN-debug] POST   /api/ai/chat              --> collab-server/controllers.AIChat (4 handlers)
+[GIN-debug] GET    /ws                       --> main.main.func3 (4 handlers)
+[GIN-debug] GET    /ping                     --> main.main.func4 (4 handlers)
+2026/03/01 14:25:22 main.go:51: 💻 [环境判定] 本地开发环境 → 使用开发端口 8080
+🚀 CollabServer 已启动: http://0.0.0.0:8080
+2026/03/01 14:25:22 main.go:337: 📡 局域网广播服务已启动 (UDP:9999)，等待被发现...
+[GIN] 2026/03/01 - 14:25:22 | 200 |            0s |             ::1 | GET      "/ping"
+[GIN] 2026/03/01 - 14:25:22 | 200 |            0s |             ::1 | GET      "/ping"
+[GIN] 2026/03/01 - 14:25:26 | 204 |            0s |             ::1 | OPTIONS  "/login"
+
+2026/03/01 14:25:26 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/auth.go:68
+[0m[33m[0.552ms] [34;1m[rows:1][0m SELECT * FROM `users` WHERE username = "111" AND `users`.`deleted_at` IS NULL ORDER BY `users`.`id` LIMIT 1
+[GIN] 2026/03/01 - 14:25:26 | 200 |     52.1772ms |             ::1 | POST     "/login"
+
+2026/03/01 14:25:26 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/user.go:21
+[0m[33m[0.547ms] [34;1m[rows:2][0m SELECT * FROM `histories` WHERE username = "111" ORDER BY updated_at desc LIMIT 10
+[GIN] 2026/03/01 - 14:25:26 | 200 |       547.5µs |             ::1 | GET      "/history?username=111"
+2026/03/01 14:25:28 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/01 14:25:28 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+[GIN] 2026/03/01 - 14:25:28 | 200 |       640.7µs |             ::1 | GET      "/ws?room=demo-room&username=111"
+
+2026/03/01 14:25:28 [31;1mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:77 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `documents` WHERE room_id = "demo-room" AND `documents`.`deleted_at` IS NULL ORDER BY `documents`.`id` LIMIT 1
+2026/03/01 14:25:28 hub.go:118: Join: 111 (Room: demo-room)
+
+2026/03/01 14:25:28 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:89
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `messages` WHERE room_id = "demo-room" AND `messages`.`deleted_at` IS NULL ORDER BY id desc LIMIT 50
+
+2026/03/01 14:25:28 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:66
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `histories` WHERE username = "111" AND room_id = "demo-room" ORDER BY `histories`.`id` LIMIT 1
+
+2026/03/01 14:25:28 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:69
+[0m[33m[6.040ms] [34;1m[rows:1][0m UPDATE `histories` SET `username`="111",`room_id`="demo-room",`updated_at`="2026-03-01 14:25:28.687" WHERE `id` = 1
+2026/03/01 14:25:30 client.go:102: error: websocket: close 1005 (no status)
+
+2026/03/01 14:25:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:154
+[0m[33m[7.127ms] [34;1m[rows:2][0m DELETE FROM `histories` WHERE room_id = "demo-room"
+2026/03/01 14:25:30 hub.go:155: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+
+2026/03/01 14:25:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/user.go:21
+[0m[33m[5.889ms] [34;1m[rows:1][0m SELECT * FROM `histories` WHERE username = "111" ORDER BY updated_at desc LIMIT 10
+[GIN] 2026/03/01 - 14:25:30 | 200 |      5.8891ms |             ::1 | GET      "/history?username=111"
+2026/03/01 14:25:30 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/01 14:25:30 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+[GIN] 2026/03/01 - 14:25:30 | 200 |            0s |             ::1 | GET      "/ws?room=demo-room1&username=111"
+
+2026/03/01 14:25:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:77
+[0m[33m[0.610ms] [34;1m[rows:1][0m SELECT * FROM `documents` WHERE room_id = "demo-room1" AND `documents`.`deleted_at` IS NULL ORDER BY `documents`.`id` LIMIT 1
+2026/03/01 14:25:30 hub.go:118: Join: 111 (Room: demo-room1)
+
+2026/03/01 14:25:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:89
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `messages` WHERE room_id = "demo-room1" AND `messages`.`deleted_at` IS NULL ORDER BY id desc LIMIT 50
+
+2026/03/01 14:25:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:66
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `histories` WHERE username = "111" AND room_id = "demo-room1" ORDER BY `histories`.`id` LIMIT 1
+
+2026/03/01 14:25:30 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:69
+[0m[33m[5.985ms] [34;1m[rows:1][0m UPDATE `histories` SET `username`="111",`room_id`="demo-room1",`updated_at`="2026-03-01 14:25:30.991" WHERE `id` = 2
+2026/03/01 14:25:31 client.go:102: error: websocket: close 1005 (no status)
+
+2026/03/01 14:25:31 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:61
+[0m[33m[7.014ms] [34;1m[rows:1][0m INSERT INTO `documents` (`created_at`,`updated_at`,`deleted_at`,`room_id`,`content`) VALUES ("2026-03-01 14:25:31.873","2026-03-01 14:25:31.873",NULL,"demo-room1","<p>321136544523</p><p>45656456</p><p>14324564</p><p>486454</p><p>4123123415641123584</p>") ON CONFLICT (`room_id`) DO UPDATE SET `content`=`excluded`.`content`,`updated_at`=`excluded`.`updated_at` RETURNING `id`
+
+2026/03/01 14:25:31 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/user.go:21
+[0m[33m[5.299ms] [34;1m[rows:1][0m SELECT * FROM `histories` WHERE username = "111" ORDER BY updated_at desc LIMIT 10
+[GIN] 2026/03/01 - 14:25:31 | 200 |      5.2992ms |             ::1 | GET      "/history?username=111"
+
+2026/03/01 14:25:31 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:154
+[0m[33m[5.400ms] [34;1m[rows:2][0m DELETE FROM `histories` WHERE room_id = "demo-room1"
+2026/03/01 14:25:31 hub.go:155: 🧹 房间 demo-room1 已空，自动清理（含历史记录）
+2026/03/01 14:25:32 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/01 14:25:32 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+[GIN] 2026/03/01 - 14:25:32 | 200 |            0s |             ::1 | GET      "/ws?room=demo-room1&username=111"
+
+2026/03/01 14:25:32 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:77
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `documents` WHERE room_id = "demo-room1" AND `documents`.`deleted_at` IS NULL ORDER BY `documents`.`id` LIMIT 1
+2026/03/01 14:25:32 hub.go:118: Join: 111 (Room: demo-room1)
+
+2026/03/01 14:25:32 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:89
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `messages` WHERE room_id = "demo-room1" AND `messages`.`deleted_at` IS NULL ORDER BY id desc LIMIT 50
+
+2026/03/01 14:25:32 [31;1mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:66 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `histories` WHERE username = "111" AND room_id = "demo-room1" ORDER BY `histories`.`id` LIMIT 1
+
+2026/03/01 14:25:32 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:71
+[0m[33m[6.107ms] [34;1m[rows:1][0m INSERT INTO `histories` (`username`,`room_id`,`updated_at`) VALUES ("111","demo-room1","2026-03-01 14:25:32.738") RETURNING `id`
+2026/03/01 14:25:33 client.go:102: error: websocket: close 1005 (no status)
+
+2026/03/01 14:25:33 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:61
+[0m[33m[6.445ms] [34;1m[rows:1][0m INSERT INTO `documents` (`created_at`,`updated_at`,`deleted_at`,`room_id`,`content`) VALUES ("2026-03-01 14:25:33.749","2026-03-01 14:25:33.749",NULL,"demo-room1","<p>321136544523</p><p>45656456</p><p>14324564</p><p>486454</p><p>4123123415641123584</p>") ON CONFLICT (`room_id`) DO UPDATE SET `content`=`excluded`.`content`,`updated_at`=`excluded`.`updated_at` RETURNING `id`
+
+2026/03/01 14:25:33 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/user.go:21
+[0m[33m[4.850ms] [34;1m[rows:1][0m SELECT * FROM `histories` WHERE username = "111" ORDER BY updated_at desc LIMIT 10
+[GIN] 2026/03/01 - 14:25:33 | 200 |      4.8504ms |             ::1 | GET      "/history?username=111"
+
+2026/03/01 14:25:33 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:154
+[0m[33m[5.486ms] [34;1m[rows:1][0m DELETE FROM `histories` WHERE room_id = "demo-room1"
+2026/03/01 14:25:33 hub.go:155: 🧹 房间 demo-room1 已空，自动清理（含历史记录）
+2026/03/01 14:25:35 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/01 14:25:35 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+[GIN] 2026/03/01 - 14:25:35 | 200 |       611.7µs |             ::1 | GET      "/ws?room=demo-room&username=111"
+
+2026/03/01 14:25:35 [31;1mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:77 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `documents` WHERE room_id = "demo-room" AND `documents`.`deleted_at` IS NULL ORDER BY `documents`.`id` LIMIT 1
+2026/03/01 14:25:35 hub.go:118: Join: 111 (Room: demo-room)
+
+2026/03/01 14:25:35 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:89
+[0m[33m[0.529ms] [34;1m[rows:0][0m SELECT * FROM `messages` WHERE room_id = "demo-room" AND `messages`.`deleted_at` IS NULL ORDER BY id desc LIMIT 50
+
+2026/03/01 14:25:35 [31;1mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:66 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `histories` WHERE username = "111" AND room_id = "demo-room" ORDER BY `histories`.`id` LIMIT 1
+
+2026/03/01 14:25:35 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:71
+[0m[33m[6.474ms] [34;1m[rows:1][0m INSERT INTO `histories` (`username`,`room_id`,`updated_at`) VALUES ("111","demo-room","2026-03-01 14:25:35.239") RETURNING `id`
+2026/03/01 14:25:35 client.go:102: error: websocket: close 1005 (no status)
+
+2026/03/01 14:25:36 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:154
+[0m[33m[5.863ms] [34;1m[rows:1][0m DELETE FROM `histories` WHERE room_id = "demo-room"
+2026/03/01 14:25:36 hub.go:155: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+
+2026/03/01 14:25:36 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/user.go:21
+[0m[33m[4.804ms] [34;1m[rows:0][0m SELECT * FROM `histories` WHERE username = "111" ORDER BY updated_at desc LIMIT 10
+[GIN] 2026/03/01 - 14:25:36 | 200 |      4.8043ms |             ::1 | GET      "/history?username=111"
+2026/03/01 14:25:38 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/01 14:25:38 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+[GIN] 2026/03/01 - 14:25:38 | 200 |       545.6µs |             ::1 | GET      "/ws?room=demo-room&username=111"
+
+2026/03/01 14:25:38 [31;1mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:77 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `documents` WHERE room_id = "demo-room" AND `documents`.`deleted_at` IS NULL ORDER BY `documents`.`id` LIMIT 1
+2026/03/01 14:25:38 hub.go:118: Join: 111 (Room: demo-room)
+
+2026/03/01 14:25:38 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:89
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `messages` WHERE room_id = "demo-room" AND `messages`.`deleted_at` IS NULL ORDER BY id desc LIMIT 50
+
+2026/03/01 14:25:38 [31;1mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:66 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `histories` WHERE username = "111" AND room_id = "demo-room" ORDER BY `histories`.`id` LIMIT 1
+
+2026/03/01 14:25:38 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:71
+[0m[33m[6.517ms] [34;1m[rows:1][0m INSERT INTO `histories` (`username`,`room_id`,`updated_at`) VALUES ("111","demo-room","2026-03-01 14:25:38.07") RETURNING `id`
+2026/03/01 14:25:39 client.go:102: error: websocket: close 1005 (no status)
+
+2026/03/01 14:25:39 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:154
+[0m[33m[6.546ms] [34;1m[rows:1][0m DELETE FROM `histories` WHERE room_id = "demo-room"
+2026/03/01 14:25:39 hub.go:155: 🧹 房间 demo-room 已空，自动清理（含历史记录）
+
+2026/03/01 14:25:39 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/controllers/user.go:21
+[0m[33m[5.863ms] [34;1m[rows:0][0m SELECT * FROM `histories` WHERE username = "111" ORDER BY updated_at desc LIMIT 10
+[GIN] 2026/03/01 - 14:25:39 | 200 |      5.8632ms |             ::1 | GET      "/history?username=111"
+2026/03/01 14:25:44 client.go:57: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
+2026/03/01 14:25:44 client.go:64: ✅ WebSocket Origin 匹配: http://wails.localhost
+[GIN] 2026/03/01 - 14:25:44 | 200 |       535.4µs |             ::1 | GET      "/ws?room=demo-room&username=111"
+
+2026/03/01 14:25:44 [31;1mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:77 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `documents` WHERE room_id = "demo-room" AND `documents`.`deleted_at` IS NULL ORDER BY `documents`.`id` LIMIT 1
+2026/03/01 14:25:44 hub.go:118: Join: 111 (Room: demo-room)
+
+2026/03/01 14:25:44 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:89
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `messages` WHERE room_id = "demo-room" AND `messages`.`deleted_at` IS NULL ORDER BY id desc LIMIT 50
+
+2026/03/01 14:25:44 [31;1mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:66 [35;1mrecord not found
+[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `histories` WHERE username = "111" AND room_id = "demo-room" ORDER BY `histories`.`id` LIMIT 1
+
+2026/03/01 14:25:44 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:71
+[0m[33m[5.901ms] [34;1m[rows:1][0m INSERT INTO `histories` (`username`,`room_id`,`updated_at`) VALUES ("111","demo-room","2026-03-01 14:25:44.938") RETURNING `id`
