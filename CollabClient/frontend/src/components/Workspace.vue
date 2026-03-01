@@ -140,7 +140,7 @@
         </template>
 
         <!-- AI 助手面板 -->
-        <AiPanel v-if="sidebarTab === 'ai'" :getEditorContent="getEditorText" />
+        <AiPanel v-if="sidebarTab === 'ai'" :getEditorContent="getEditorText" @insert="handleInsertFromAI" />
       </aside>
     </div>
 
@@ -439,6 +439,13 @@ const handleChatImageUpload = async (event) => {
     }
   } catch (e) { alert("图片发送失败") }
   event.target.value = ''
+}
+
+// ================= 处理 AI 插入文本 =================
+const handleInsertFromAI = (text) => {
+  if (editorRef.value) {
+    editorRef.value.insertTextAtCursor(text)
+  }
 }
 
 const scrollToBottom = () => { nextTick(() => { if (chatBoxRef.value) chatBoxRef.value.scrollTop = chatBoxRef.value.scrollHeight }) }

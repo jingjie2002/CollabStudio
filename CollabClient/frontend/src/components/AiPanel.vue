@@ -28,7 +28,12 @@
         <div class="msg-icon">
           <i :class="msg.role === 'user' ? 'ri-user-line' : 'ri-robot-line'"></i>
         </div>
-        <div class="msg-body" v-html="formatContent(msg.content)"></div>
+        <div class="msg-content-wrapper">
+          <div class="msg-body" v-html="formatContent(msg.content)"></div>
+          <button v-if="msg.role === 'assistant'" class="insert-btn" @click="$emit('insert', msg.content)" title="插入到编辑器">
+            <i class="ri-insert-row-bottom"></i> 插入到文档
+          </button>
+        </div>
       </div>
       <div v-if="loading" class="ai-msg assistant">
         <div class="msg-icon"><i class="ri-robot-line"></i></div>
@@ -62,6 +67,8 @@ const props = defineProps({
   // 获取当前编辑器内容的函数
   getEditorContent: { type: Function, default: () => '' }
 })
+
+const emit = defineEmits(['insert'])
 
 const messages = ref([])
 const userInput = ref('')
@@ -193,13 +200,17 @@ const formatContent = (text) => {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
   background: var(--bg-panel);
+  position: absolute; /* Pin it to the parent bounds */
+  inset: 0;
 }
 
 .panel-header {
   padding: 12px 16px;
   background: rgba(0,0,0,0.1);
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .panel-header h3 {
@@ -219,6 +230,7 @@ const formatContent = (text) => {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border-color);
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .action-chip {
@@ -250,6 +262,7 @@ const formatContent = (text) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 0; /* Force Flexbox to utilize overflow instead of stretching parent */
 }
 
 .empty-hint {
@@ -316,6 +329,35 @@ const formatContent = (text) => {
   font-style: italic;
 }
 
+.msg-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  flex: 1;
+}
+
+.insert-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+  align-self: flex-end;
+}
+
+.insert-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+  border-color: var(--text-muted);
+}
+
 .dot-pulse {
   display: inline-block;
   width: 6px;
@@ -342,6 +384,7 @@ const formatContent = (text) => {
   padding: 10px 12px;
   border-top: 1px solid var(--border-color);
   background: var(--bg-panel);
+  flex-shrink: 0;
 }
 
 .ai-input-area input {
