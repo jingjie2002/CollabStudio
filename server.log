@@ -248,3 +248,12 @@
 2026/03/02 03:30:47 client.go:63: 📡 WebSocket Origin 检查: origin=http://wails.localhost, 白名单=http://localhost:5173,http://wails.localhost
 2026/03/02 03:30:47 client.go:70: ✅ WebSocket Origin 匹配: http://wails.localhost
 2026/03/02 03:30:47 hub.go:117: Join: 111 (Room: demo-room)
+2026/03/02 03:58:12 main.go:388: 📝 日志文件已启用: F:\goworkstation\MyGradProject2\MyGradProject\server.log
+2026/03/02 03:58:12 main.go:94: ✅ JWT_SECRET 已就绪
+2026/03/02 03:58:12 db.go:27: ✅ 数据库文件权限已设置为 0644: collab.db
+2026/03/02 03:58:12 main.go:139: 🔐 CORS 白名单已加载: [http://localhost:5173 http://wails.localhost]
+2026/03/02 03:58:12 main.go:163: 📂 上传目录已就绪: uploads
+2026/03/02 03:58:12 main.go:178: 📂 正在尝试挂载静态资源目录: F:\goworkstation\MyGradProject2\MyGradProject\dist
+2026/03/02 03:58:12 main.go:219: ⚠️ DIST_PATH 指定的目录不存在: F:\goworkstation\MyGradProject2\MyGradProject\dist (原始路径: ./dist)
+2026/03/02 03:58:12 main.go:39: 📋 [环境判定] .env PORT=8080
+2026/03/02 03:58:12 main.go:344: 📡 局域网广播服务已启动 (UDP:9999)，等待被发现...

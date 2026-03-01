@@ -2380,3 +2380,148 @@
 
 2026/03/02 03:30:47 [32mF:/goworkstation/MyGradProject2/MyGradProject/CollabServer/websocket/hub.go:70
 [0m[33m[6.124ms] [34;1m[rows:1][0m INSERT INTO `histories` (`username`,`room_id`,`updated_at`) VALUES ("111","demo-room","2026-03-02 03:30:47.765") RETURNING `id`
+2026/03/02 03:58:12 main.go:388: 📝 日志文件已启用: F:\goworkstation\MyGradProject2\MyGradProject\server.log
+✅ [Config] 已加载 .env: F:\goworkstation\MyGradProject2\MyGradProject\.env
+2026/03/02 03:58:12 main.go:94: ✅ JWT_SECRET 已就绪
+⏳ 正在连接数据库...
+2026/03/02 03:58:12 db.go:27: ✅ 数据库文件权限已设置为 0644: collab.db
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="users"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "users" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `users` LIMIT 1
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_deleted_at"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_username"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="documents"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "documents" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `documents` LIMIT 1
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_deleted_at"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_room_id"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="messages"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "messages" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `messages` LIMIT 1
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_deleted_at"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_room_id"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="histories"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:2][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "histories" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `histories` LIMIT 1
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "histories" AND name = "idx_histories_username"
+✅ Database connected and migrated successfully!
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="users"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "users" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `users` LIMIT 1
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_deleted_at"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "users" AND name = "idx_users_username"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="documents"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[1.025ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "documents" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `documents` LIMIT 1
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_deleted_at"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "documents" AND name = "idx_documents_room_id"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="messages"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "messages" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `messages` LIMIT 1
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_deleted_at"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "messages" AND name = "idx_messages_room_id"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:32
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="histories"
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:117
+[0m[33m[0.000ms] [34;1m[rows:2][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "histories" AND sql IS NOT NULL order by type = "table" desc
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:125
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `histories` LIMIT 1
+
+2026/03/02 03:58:12 [32mF:/goworkstation/code/pkg/mod/github.com/glebarez/sqlite@v1.11.0/migrator.go:293
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "histories" AND name = "idx_histories_username"
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+2026/03/02 03:58:12 main.go:139: 🔐 CORS 白名单已加载: [http://localhost:5173 http://wails.localhost]
+2026/03/02 03:58:12 main.go:163: 📂 上传目录已就绪: uploads
+[GIN-debug] GET    /uploads/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] HEAD   /uploads/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+2026/03/02 03:58:12 main.go:178: 📂 正在尝试挂载静态资源目录: F:\goworkstation\MyGradProject2\MyGradProject\dist
+2026/03/02 03:58:12 main.go:219: ⚠️ DIST_PATH 指定的目录不存在: F:\goworkstation\MyGradProject2\MyGradProject\dist (原始路径: ./dist)
+[GIN-debug] POST   /register                 --> collab-server/controllers.Register (4 handlers)
+[GIN-debug] POST   /login                    --> collab-server/controllers.Login (4 handlers)
+[GIN-debug] GET    /history                  --> collab-server/controllers.GetHistory (4 handlers)
+[GIN-debug] DELETE /history/:id              --> collab-server/controllers.DeleteHistory (4 handlers)
+[GIN-debug] POST   /upload                   --> collab-server/controllers.UploadImage (4 handlers)
+[GIN-debug] POST   /api/ai/chat              --> collab-server/controllers.AIChat (4 handlers)
+[GIN-debug] GET    /ws                       --> main.main.func3 (4 handlers)
+[GIN-debug] GET    /ping                     --> main.main.func4 (4 handlers)
+2026/03/02 03:58:12 main.go:39: 📋 [环境判定] .env PORT=8080
+🚀 CollabServer 已启动: http://0.0.0.0:8080
+2026/03/02 03:58:12 main.go:344: 📡 局域网广播服务已启动 (UDP:9999)，等待被发现...
+[GIN] 2026/03/02 - 03:58:12 | 200 |            0s |             ::1 | GET      "/ping"
+[GIN] 2026/03/02 - 03:58:12 | 200 |            0s |             ::1 | GET      "/ping"
