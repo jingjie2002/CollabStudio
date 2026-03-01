@@ -172,7 +172,7 @@ import AiPanel from './AiPanel.vue'
 import { SaveFile, OpenFile, IsHostUser, ConfirmExit } from '../../wailsjs/go/main/App'
 import { EventsOn } from '../../wailsjs/runtime'
 import { serverConfig } from '../store'
-import { settings, toggleTheme } from '../settings'
+import { settings } from '../settings'
 import 'remixicon/fonts/remixicon.css'
 
 const props = defineProps({

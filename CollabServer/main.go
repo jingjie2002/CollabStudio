@@ -4,6 +4,7 @@ import (
 	"collab-server/config"
 	"collab-server/controllers"
 	"collab-server/database"
+	"collab-server/middleware"
 	"collab-server/models"
 	"collab-server/websocket"
 	"context"
@@ -225,10 +226,16 @@ func main() {
 	// -------------------------------------------------------------------------
 	r.POST("/register", controllers.Register)
 	r.POST("/login", controllers.Login)
-	r.GET("/history", controllers.GetHistory)
-	r.DELETE("/history/:id", controllers.DeleteHistory)
-	r.POST("/upload", controllers.UploadImage)
-	r.POST("/api/ai/chat", controllers.AIChat)
+
+	// 需要鉴权的路由
+	authGroup := r.Group("/")
+	authGroup.Use(middleware.JWTAuth())
+	{
+		authGroup.GET("/history", controllers.GetHistory)
+		authGroup.DELETE("/history/:id", controllers.DeleteHistory)
+		authGroup.POST("/upload", controllers.UploadImage)
+		authGroup.POST("/api/ai/chat", controllers.AIChat)
+	}
 
 	// WebSocket 端点
 	r.GET("/ws", func(c *gin.Context) {

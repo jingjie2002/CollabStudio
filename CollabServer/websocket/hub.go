@@ -189,10 +189,11 @@ func (h *Hub) Run() {
 				}
 
 				// 处理数据持久化
-				if msgType == "doc_update" {
+				switch msgType {
+				case "doc_update":
 					room.Content = tmpMsg.Content
 					h.dirtyRooms[message.RoomID] = true
-				} else if msgType == "chat" {
+				case "chat":
 					go h.saveChatToDB(message.RoomID, tmpMsg.Sender, tmpMsg.Message)
 				}
 			}
