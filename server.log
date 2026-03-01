@@ -316,3 +316,12 @@
 2026/03/02 04:19:48 ai.go:136: ❌ [AI] API 返回异常 (404): 
 2026/03/02 04:21:39 ai.go:136: ❌ [AI] API 返回异常 (402): {"error":{"message":"Insufficient Balance","type":"unknown_error","param":null,"code":"invalid_request_error"}}
 2026/03/02 04:28:26 ai.go:136: ❌ [AI] API 返回异常 (404): {"timestamp":"2026-03-01T20:28:25.693+00:00","status":404,"error":"Not Found","path":"/v4/chat/completions/chat/completions"}
+2026/03/02 04:36:16 main.go:395: 📝 日志文件已启用: F:\goworkstation\MyGradProject2\MyGradProject\server.log
+2026/03/02 04:36:16 main.go:95: ✅ JWT_SECRET 已就绪
+2026/03/02 04:36:16 db.go:27: ✅ 数据库文件权限已设置为 0644: collab.db
+2026/03/02 04:36:16 main.go:140: 🔐 CORS 白名单已加载: [http://localhost:5173 http://wails.localhost]
+2026/03/02 04:36:16 main.go:164: 📂 上传目录已就绪: uploads
+2026/03/02 04:36:16 main.go:179: 📂 正在尝试挂载静态资源目录: F:\goworkstation\MyGradProject2\MyGradProject\dist
+2026/03/02 04:36:16 main.go:220: ⚠️ DIST_PATH 指定的目录不存在: F:\goworkstation\MyGradProject2\MyGradProject\dist (原始路径: ./dist)
+2026/03/02 04:36:16 main.go:40: 📋 [环境判定] .env PORT=8080
+2026/03/02 04:36:16 main.go:351: 📡 局域网广播服务已启动 (UDP:9999)，等待被发现...
