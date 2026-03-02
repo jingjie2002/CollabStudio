@@ -58,6 +58,7 @@ import Lobby from './components/Lobby.vue'
 import Workspace from './components/Workspace.vue'
 import TabBar from './components/TabBar.vue'
 import { initSettings } from './settings'
+import { serverConfig } from './store'
 
 // 视图状态：login -> lobby -> workspace
 const currentView = ref('login')
