@@ -1,0 +1,19 @@
+[Unit]
+Description=CollabStudio AI Go Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+# 将此处修改为你实际解压上传的服务器路径
+WorkingDirectory=/opt/collabstudio
+ExecStart=/opt/collabstudio/collab-server-linux-amd64
+
+# 环境配置从 .env 读取，若需额外挂载独立环境变量也可写在此处
+EnvironmentFile=/opt/collabstudio/.env
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

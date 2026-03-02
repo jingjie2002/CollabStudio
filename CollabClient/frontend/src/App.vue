@@ -80,7 +80,16 @@ const checkServerAvailability = async () => {
   for (let i = 0; i < maxRetries; i++) {
     loadingHint.value = `正在检测后端服务... (${i + 1}/${maxRetries})`
     try {
-      const ok = await window.go.main.App.CheckServerHealth()
+      let ok = false
+      // 如果是在 Wails 桌面环境
+      if (window.go && window.go.main && window.go.main.App) {
+        ok = await window.go.main.App.CheckServerHealth()
+      } else {
+        // 浏览器环境，请求后端的 /ping 接口
+        const res = await fetch(`${serverConfig.getHttpUrl()}/ping`)
+        if (res.ok) ok = true
+      }
+      
       if (ok) {
         console.log('✅ [App] 后端服务已就绪')
         isConnecting.value = false
