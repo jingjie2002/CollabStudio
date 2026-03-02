@@ -101,7 +101,19 @@ const getAutoHost = () => {
 }
 
 // 初始化状态
-const initialHost = localStorage.getItem(STORE_KEY) || getAutoHost()
+let initialHost = localStorage.getItem(STORE_KEY)
+const hostname = window.location.hostname
+
+// 防御性清理：如果当前页面在公网/局域网，但LocalStorage仍缓存了之前的 localhost，强行清除它，防止浏览器拦截
+if (initialHost && (initialHost.includes('localhost') || initialHost.includes('127.0.0.1')) && hostname !== 'localhost' && hostname !== '127.0.0.1' && hostname !== 'wails.localhost') {
+    console.warn(`[Config] 侦测到 LocalStorage 缓存了失效的本地地址 ${initialHost}，已自动清除并重新寻路！`)
+    initialHost = null
+    localStorage.removeItem(STORE_KEY)
+}
+
+if (!initialHost) {
+    initialHost = getAutoHost()
+}
 
 const state = reactive({
     host: initialHost
