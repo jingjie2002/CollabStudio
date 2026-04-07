@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -60,6 +62,58 @@ type openAIResponse struct {
 	} `json:"error,omitempty"`
 }
 
+func parseAllowedAIHosts() map[string]struct{} {
+	raw := config.GetEnv("AI_ALLOWED_HOSTS", "api.deepseek.com,api.openai.com,dashscope.aliyuncs.com")
+	allowed := map[string]struct{}{}
+	for _, host := range strings.Split(raw, ",") {
+		host = strings.TrimSpace(strings.ToLower(host))
+		if host != "" {
+			allowed[host] = struct{}{}
+		}
+	}
+	return allowed
+}
+
+func normalizeAIBaseURL(raw string) (string, error) {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil {
+		return "", fmt.Errorf("AI API URL 非法")
+	}
+
+	if u.Scheme == "" || u.Host == "" {
+		return "", fmt.Errorf("AI API URL 不完整")
+	}
+
+	if !strings.EqualFold(u.Scheme, "https") {
+		return "", fmt.Errorf("仅允许 HTTPS 的 AI API URL")
+	}
+
+	hostname := strings.ToLower(u.Hostname())
+	if hostname == "" {
+		return "", fmt.Errorf("AI API URL Host 非法")
+	}
+
+	if hostname == "localhost" || strings.HasSuffix(hostname, ".local") || strings.HasSuffix(hostname, ".internal") {
+		return "", fmt.Errorf("禁止访问本地或内网主机")
+	}
+	if ip := net.ParseIP(hostname); ip != nil {
+		if ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
+			return "", fmt.Errorf("禁止访问本地或内网 IP")
+		}
+	}
+
+	if _, ok := parseAllowedAIHosts()[hostname]; !ok {
+		return "", fmt.Errorf("该 AI API Host 不在允许列表")
+	}
+
+	basePath := strings.TrimRight(u.Path, "/")
+	if basePath == "" {
+		basePath = "/v1"
+	}
+
+	return fmt.Sprintf("%s://%s%s", strings.ToLower(u.Scheme), u.Host, basePath), nil
+}
+
 // AIChat 处理 AI 对话请求（SSE 流式输出）
 func AIChat(c *gin.Context) {
 	var req AIChatRequest
@@ -77,6 +131,14 @@ func AIChat(c *gin.Context) {
 	apiUrl := req.APIUrl
 	if apiUrl == "" {
 		apiUrl = config.GetEnv("AI_API_URL", "https://api.deepseek.com/v1")
+		apiUrl = strings.TrimRight(apiUrl, "/")
+	} else {
+		normalized, normalizeErr := normalizeAIBaseURL(apiUrl)
+		if normalizeErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": normalizeErr.Error()})
+			return
+		}
+		apiUrl = normalized
 	}
 
 	apiKey := req.APIKey
@@ -144,10 +206,10 @@ func AIChat(c *gin.Context) {
 	c.Header("Content-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
-	c.Header("Access-Control-Allow-Origin", "*")
 
 	flusher, _ := c.Writer.(http.Flusher)
 	scanner := bufio.NewScanner(resp.Body)
+	scanner.Buffer(make([]byte, 64*1024), 1024*1024)
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -181,5 +243,9 @@ func AIChat(c *gin.Context) {
 				}
 			}
 		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Printf("⚠️ [AI] SSE 读取异常: %v", err)
 	}
 }

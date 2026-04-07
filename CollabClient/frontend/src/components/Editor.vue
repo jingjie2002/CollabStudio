@@ -176,8 +176,19 @@ const updateCursors = (users) => {
 const insertTextAtCursor = (text) => {
   if (editor.value) {
     const rawEditor = toRaw(editor.value)
-    // 插入内容并获取焦点
-    rawEditor.chain().focus().insertContent(text).run()
+    // 以纯文本节点插入，避免将外部字符串按 HTML 解析。
+    const safeText = String(text ?? '')
+    const paragraphs = safeText.split(/\r?\n/).map(line => {
+      if (line === '') {
+        return { type: 'paragraph' }
+      }
+      return {
+        type: 'paragraph',
+        content: [{ type: 'text', text: line }]
+      }
+    })
+
+    rawEditor.chain().focus().insertContent(paragraphs).run()
     // 触发更新同步
     emit('update', rawEditor.getHTML())
   }

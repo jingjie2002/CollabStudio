@@ -59,6 +59,7 @@ import Workspace from './components/Workspace.vue'
 import TabBar from './components/TabBar.vue'
 import { initSettings } from './settings'
 import { serverConfig } from './store'
+import { clearAuthToken, migrateLegacyAuthToken } from './utils/auth'
 
 // 视图状态：login -> lobby -> workspace
 const currentView = ref('login')
@@ -113,6 +114,7 @@ const retryConnection = () => {
 }
 
 onMounted(() => {
+  migrateLegacyAuthToken()
   initSettings()
   checkServerAvailability()
 })
@@ -186,7 +188,7 @@ const handleAddRoom = () => {
 // 处理退出登录（关闭所有标签）
 const handleLogout = () => {
   console.log("[App] User logged out")
-  localStorage.removeItem('jwt_token')
+  clearAuthToken()
   currentUser.value = null
   openRooms.splice(0, openRooms.length)
   activeRoom.value = ''

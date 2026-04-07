@@ -1,6 +1,7 @@
 ﻿<script setup>
 import { ref, onMounted } from 'vue'
 import { serverConfig } from '../store'
+import { getAuthToken } from '../utils/auth'
 
 const props = defineProps({
   user: { type: String, default: 'Guest' }
@@ -15,9 +16,15 @@ const fetchHistory = async () => {
   if (!props.user) return
   isLoading.value = true
   try {
-    const targetUrl = `${serverConfig.getHttpUrl()}/history?username=${encodeURIComponent(props.user)}`
+    const token = getAuthToken()
+    if (!token) {
+      historyList.value = []
+      return
+    }
+
+    const targetUrl = `${serverConfig.getHttpUrl()}/history`
     const res = await fetch(targetUrl, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+      headers: { 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
     if (data.history) {
@@ -38,9 +45,14 @@ const joinFromHistory = (roomID) => {
 const deleteHistory = async (id, event) => {
   event.stopPropagation()
   try {
+    const token = getAuthToken()
+    if (!token) {
+      return
+    }
+
     await fetch(`${serverConfig.getHttpUrl()}/history/${id}`, { 
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+      headers: { 'Authorization': `Bearer ${token}` }
     })
     historyList.value = historyList.value.filter(h => h.id !== id)
   } catch (e) {

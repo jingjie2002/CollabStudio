@@ -29,7 +29,11 @@ func Register(c *gin.Context) {
 	}
 
 	// 2. 密码加密
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	hashedPassword, hashErr := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	if hashErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码加密失败"})
+		return
+	}
 
 	// 3. 创建用户对象
 	user := models.User{

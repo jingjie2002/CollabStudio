@@ -29,8 +29,8 @@
           <i :class="msg.role === 'user' ? 'ri-user-line' : 'ri-robot-line'"></i>
         </div>
         <div class="msg-content-wrapper">
-          <div class="msg-body" v-html="formatContent(msg.content)"></div>
-          <button v-if="msg.role === 'assistant'" class="insert-btn" @click="$emit('insert', formatContent(msg.content))" title="插入到编辑器">
+          <div class="msg-body">{{ msg.content }}</div>
+          <button v-if="msg.role === 'assistant'" class="insert-btn" @click="$emit('insert', msg.content)" title="插入到编辑器">
             <i class="ri-insert-row-bottom"></i> 插入到文档
           </button>
         </div>
@@ -62,6 +62,7 @@
 import { ref, nextTick } from 'vue'
 import { serverConfig } from '../store'
 import { settings } from '../settings'
+import { getAuthToken } from '../utils/auth'
 
 const props = defineProps({
   // 获取当前编辑器内容的函数
@@ -119,12 +120,18 @@ const sendToAI = async (prompt, actionLabel) => {
       { role: 'user', content: prompt }
     ]
 
+    const token = getAuthToken()
+    if (!token) {
+      assistantMsg.content = '❌ 登录状态已失效，请重新登录后再试'
+      return
+    }
+
     const baseUrl = serverConfig.getHttpUrl()
     const resp = await fetch(`${baseUrl}/api/ai/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         messages: aiMessages,
@@ -182,16 +189,6 @@ const scrollToBottom = () => {
   nextTick(() => {
     if (messagesRef.value) messagesRef.value.scrollTop = messagesRef.value.scrollHeight
   })
-}
-
-// 简单的 markdown 格式化
-const formatContent = (text) => {
-  if (!text) return ''
-  return text
-    .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n/g, '<br>')
 }
 
 const executeExternalQuery = (query) => {
@@ -311,6 +308,7 @@ defineExpose({ executeExternalQuery })
   line-height: 1.5;
   color: var(--text-main);
   word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .msg-body :deep(pre) {

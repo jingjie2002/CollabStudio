@@ -5,6 +5,17 @@ const DEFAULT_SERVER_IP = import.meta.env.VITE_DEFAULT_SERVER_IP || 'localhost'
 const DEFAULT_DEV_PORT = '8080'
 const DEFAULT_PROD_PORT = '80'
 
+const getHttpProtocol = () => {
+    if (window.location.protocol === 'https:') {
+        return 'https'
+    }
+    return 'http'
+}
+
+const getWsProtocol = () => {
+    return getHttpProtocol() === 'https' ? 'wss' : 'ws'
+}
+
 /**
  * 检测是否为有效 IP 地址
  */
@@ -137,12 +148,12 @@ export const serverConfig = {
 
     // 动态生成 HTTP URL
     getHttpUrl() {
-        return `http://${state.host}`
+        return `${getHttpProtocol()}://${state.host}`
     },
 
     // 动态生成 WebSocket URL
     getWsUrl() {
-        return `ws://${state.host}`
+        return `${getWsProtocol()}://${state.host}`
     }
 }
 

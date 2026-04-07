@@ -100,7 +100,10 @@ wails build
 - `.gitignore`
 - `PROJECT_STATUS_REPORT.md`
 - `TECH_INDEX.md`
-- `.env.example`
+- `CollabServer/.env.example`
+- `CollabClient/frontend/.env.example`
+- `deploy/.env.example`
+- `deploy/collab-server.service`
 
 ### 不建议提交
 
@@ -125,4 +128,5 @@ wails build
 
 - 浏览器端和桌面端共用同一套核心业务逻辑，但桌面端额外封装了本地文件操作和关闭拦截能力。
 - `AI` 相关能力依赖外部密钥与网络环境，适合作为扩展能力说明，不建议作为基础运行验证的唯一依据。
+- 后端环境变量请从 `CollabServer/.env.example` 复制为 `CollabServer/.env` 后再按实际环境填写；前端环境变量请参考 `CollabClient/frontend/.env.example`。
 - 如果准备公开仓库，提交前建议再次检查 `.env`、数据库、上传图片和构建产物是否已被正确忽略。

@@ -2,13 +2,17 @@ package websocket
 
 import (
 	"collab-server/config"
+	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
@@ -39,11 +43,26 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		origin := r.Header.Get("Origin")
 
-		// 如果没有 Origin 头（某些特殊情况），允许连接
-		// 这主要是为了支持 Wails 桌面客户端（它可能不发送 Origin）
+		// 生产环境收紧空 Origin。仅允许本机/Wails 桌面场景。
 		if origin == "" {
-			log.Println("📡 WebSocket 连接无 Origin 头，允许 (可能是桌面客户端)")
-			return true
+			if os.Getenv("GIN_MODE") != "release" {
+				log.Println("📡 WebSocket 连接无 Origin 头，开发模式允许")
+				return true
+			}
+
+			remoteHost := r.RemoteAddr
+			if host, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+				remoteHost = host
+			}
+			ua := strings.ToLower(r.UserAgent())
+			ip := net.ParseIP(remoteHost)
+			if (ip != nil && ip.IsLoopback()) || strings.Contains(ua, "wails") {
+				log.Println("📡 WebSocket 连接无 Origin 头，生产模式按本机/Wails 允许")
+				return true
+			}
+
+			log.Println("⚠️ WebSocket 拒绝空 Origin 连接")
+			return false
 		}
 
 		// 从环境变量读取白名单
@@ -62,17 +81,29 @@ var upgrader = websocket.Upgrader{
 		// 🟢 调试日志：显示当前检查的 Origin 和白名单
 		log.Printf("📡 WebSocket Origin 检查: origin=%s, 白名单=%s", origin, allowedOrigins)
 
-		// 检查 origin 是否在白名单中
+		originURL, err := url.Parse(origin)
+		if err != nil || originURL.Scheme == "" || originURL.Hostname() == "" {
+			log.Printf("⚠️ WebSocket 非法 Origin 格式: %s", origin)
+			return false
+		}
+
+		// 检查 origin 是否在白名单中（协议+主机严格匹配，端口可选匹配）
 		for _, allowed := range strings.Split(allowedOrigins, ",") {
 			allowed = strings.TrimSpace(allowed)
-			// 精确匹配
-			if allowed == origin {
-				log.Printf("✅ WebSocket Origin 匹配: %s", origin)
-				return true
+			if allowed == "" {
+				continue
 			}
-			// 🟢 前缀匹配：支持 http://119.29.55.127 匹配 http://119.29.55.127:80
-			if strings.HasPrefix(origin, allowed) || strings.HasPrefix(allowed, origin) {
-				log.Printf("✅ WebSocket Origin 前缀匹配: origin=%s, allowed=%s", origin, allowed)
+
+			allowedURL, parseErr := url.Parse(allowed)
+			if parseErr != nil || allowedURL.Scheme == "" || allowedURL.Hostname() == "" {
+				continue
+			}
+
+			sameScheme := strings.EqualFold(originURL.Scheme, allowedURL.Scheme)
+			sameHost := strings.EqualFold(originURL.Hostname(), allowedURL.Hostname())
+			portAllowed := allowedURL.Port() == "" || originURL.Port() == allowedURL.Port()
+			if sameScheme && sameHost && portAllowed {
+				log.Printf("✅ WebSocket Origin 匹配: origin=%s, allowed=%s", origin, allowed)
 				return true
 			}
 		}
@@ -89,7 +120,82 @@ type Client struct {
 	Send     chan []byte
 	RoomID   string
 	Username string
+	UserID   uint
 	UUID     string // 🟢 唯一客户端标识，用于防止消息反射
+}
+
+func extractTokenFromRequest(c *gin.Context) string {
+	if token := strings.TrimSpace(c.Query("token")); token != "" {
+		return token
+	}
+
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		return ""
+	}
+
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+		return ""
+	}
+
+	return strings.TrimSpace(parts[1])
+}
+
+func authenticateWS(c *gin.Context) (string, uint, error) {
+	tokenString := extractTokenFromRequest(c)
+	if tokenString == "" {
+		return "", 0, fmt.Errorf("缺少 token")
+	}
+
+	jwtSecret := config.GetEnv("JWT_SECRET", "")
+	if jwtSecret == "" {
+		return "", 0, fmt.Errorf("服务器密钥未配置")
+	}
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("非法签名算法")
+		}
+		return []byte(jwtSecret), nil
+	})
+	if err != nil || !token.Valid {
+		return "", 0, fmt.Errorf("token 无效")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", 0, fmt.Errorf("无法解析 token claims")
+	}
+
+	usernameVal, ok := claims["username"]
+	if !ok {
+		return "", 0, fmt.Errorf("缺少 username claims")
+	}
+	username, ok := usernameVal.(string)
+	if !ok || strings.TrimSpace(username) == "" {
+		return "", 0, fmt.Errorf("username claims 非法")
+	}
+
+	var userID uint
+	if userIDRaw, exists := claims["userId"]; exists {
+		switch v := userIDRaw.(type) {
+		case float64:
+			if v > 0 {
+				userID = uint(v)
+			}
+		case int:
+			if v > 0 {
+				userID = uint(v)
+			}
+		case int64:
+			if v > 0 {
+				userID = uint(v)
+			}
+		}
+	}
+
+	return strings.TrimSpace(username), userID, nil
 }
 
 func (c *Client) readPump() {
@@ -152,13 +258,19 @@ func (c *Client) writePump() {
 }
 
 func ServeWs(hub *Hub, c *gin.Context) {
+	username, userID, err := authenticateWS(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "WebSocket 鉴权失败"})
+		return
+	}
+
 	roomID := c.Query("room")
 	if roomID == "" {
 		roomID = "lobby"
 	}
-	username := c.Query("username")
-	if username == "" {
-		username = "Anonymous"
+	roomID = strings.TrimSpace(roomID)
+	if roomID == "" {
+		roomID = "lobby"
 	}
 
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
@@ -176,6 +288,7 @@ func ServeWs(hub *Hub, c *gin.Context) {
 		Send:     make(chan []byte, 256),
 		RoomID:   roomID,
 		Username: username,
+		UserID:   userID,
 		UUID:     clientUUID,
 	}
 

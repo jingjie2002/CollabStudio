@@ -89,6 +89,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { serverConfig } from '../store'
+import { setAuthToken } from '../utils/auth'
 
 const emit = defineEmits(['login'])
 
@@ -141,7 +142,7 @@ const handleAuth = async () => {
         alert("注册成功，请登录！")
         isRegister.value = false
       } else {
-        localStorage.setItem('jwt_token', data.token)
+        setAuthToken(data.token)
         emit('login', username.value)
       }
     } else {

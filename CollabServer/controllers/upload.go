@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -40,7 +41,10 @@ func UploadImage(c *gin.Context) {
 	}
 	defer src.Close()
 	buf := make([]byte, 512)
-	src.Read(buf)
+	if _, err := src.Read(buf); err != nil && err != io.EOF {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "读取文件失败"})
+		return
+	}
 	mimeType := http.DetectContentType(buf)
 	allowedMimes := map[string]bool{"image/jpeg": true, "image/png": true, "image/gif": true}
 	if !allowedMimes[mimeType] {
@@ -64,14 +68,8 @@ func UploadImage(c *gin.Context) {
 		return
 	}
 
-	// 6. 返回可访问的 URL
-	// 注意: 这里的 host 最好根据实际情况动态获取，目前先用相对路径或固定 localhost
-	protocol := "http://"
-	if c.Request.TLS != nil {
-		protocol = "https://"
-	}
-	host := c.Request.Host
-	fileURL := fmt.Sprintf("%s%s/uploads/%s", protocol, host, filename)
+	// 6. 返回相对 URL，避免 Host 头污染风险
+	fileURL := fmt.Sprintf("/uploads/%s", filename)
 
 	c.JSON(http.StatusOK, gin.H{
 		"url": fileURL,

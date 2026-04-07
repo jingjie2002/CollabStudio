@@ -18,13 +18,13 @@ func Connect() {
 	var err error
 	dbName := config.GetEnv("DB_NAME", "collab.db")
 
-	// 🟢 权限修复：确保数据库文件可读写 (0644)
+	// 🟢 权限修复：尽量收紧数据库文件权限 (0600)
 	// 如果文件存在但权限不对，尝试修复
 	if _, statErr := os.Stat(dbName); statErr == nil {
-		if chmodErr := os.Chmod(dbName, 0644); chmodErr != nil {
+		if chmodErr := os.Chmod(dbName, 0600); chmodErr != nil {
 			log.Printf("⚠️ 无法修改数据库权限: %v", chmodErr)
 		} else {
-			log.Printf("✅ 数据库文件权限已设置为 0644: %s", dbName)
+			log.Printf("✅ 数据库文件权限已设置为 0600: %s", dbName)
 		}
 	}
 

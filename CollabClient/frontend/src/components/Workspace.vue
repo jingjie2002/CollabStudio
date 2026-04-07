@@ -173,6 +173,7 @@ import { SaveFile, OpenFile, IsHostUser, ConfirmExit } from '../../wailsjs/go/ma
 import { EventsOn } from '../../wailsjs/runtime'
 import { serverConfig } from '../store'
 import { settings } from '../settings'
+import { getAuthToken } from '../utils/auth'
 import 'remixicon/fonts/remixicon.css'
 
 const props = defineProps({
@@ -272,8 +273,16 @@ const connectWebSocket = () => {
   if (socket.value && socket.value.readyState === WebSocket.CONNECTING) return
   if (socket.value) socket.value.close()
 
-  const safeUsername = encodeURIComponent(props.username)
-  const wsUrl = `${serverConfig.getWsUrl()}/ws?room=${roomID.value}&username=${safeUsername}`
+  const token = getAuthToken()
+  if (!token) {
+    isConnected.value = false
+    alert('登录状态已失效，请重新登录')
+    return
+  }
+
+  const safeRoom = encodeURIComponent(roomID.value)
+  const safeToken = encodeURIComponent(token)
+  const wsUrl = `${serverConfig.getWsUrl()}/ws?room=${safeRoom}&token=${safeToken}`
 
   console.log(`[WS] Connecting: ${wsUrl}`)
   socket.value = new WebSocket(wsUrl)
@@ -450,10 +459,16 @@ const handleChatImageUpload = async (event) => {
   const formData = new FormData()
   formData.append('image', file)
   try {
+    const token = getAuthToken()
+    if (!token) {
+      alert('登录状态已失效，请重新登录')
+      return
+    }
+
     const response = await fetch(`${serverConfig.getHttpUrl()}/upload`, { 
       method: 'POST', 
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+        'Authorization': `Bearer ${token}`
       },
       body: formData 
     })

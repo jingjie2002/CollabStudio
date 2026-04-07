@@ -122,7 +122,7 @@ UPLOAD_DIR=uploads
 DIST_PATH=./dist
 `, jwtSecret)
 
-	return os.WriteFile(path, []byte(content), 0644)
+	return os.WriteFile(path, []byte(content), 0600)
 }
 
 // =============================================================================
@@ -173,5 +173,5 @@ func appendToEnvFile(path, key, value string) {
 		lines = append(lines, fmt.Sprintf("%s=%s", key, value))
 	}
 
-	os.WriteFile(path, []byte(strings.Join(lines, "\n")), 0644)
+	os.WriteFile(path, []byte(strings.Join(lines, "\n")), 0600)
 }

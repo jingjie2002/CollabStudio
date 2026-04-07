@@ -161,6 +161,14 @@ func (h *Hub) Run() {
 				msgType := ""
 				if err := json.Unmarshal(message.Message, &tmpMsg); err == nil {
 					msgType = tmpMsg.Type
+					if message.Sender != nil {
+						// 服务端覆盖 sender，避免客户端伪造身份。
+						tmpMsg.Sender = message.Sender.Username
+						rebuilt, marshalErr := json.Marshal(tmpMsg)
+						if marshalErr == nil {
+							message.Message = rebuilt
+						}
+					}
 				}
 
 				// 🟢 核心修复：分级广播 + UUID 双重过滤
@@ -194,7 +202,11 @@ func (h *Hub) Run() {
 					room.Content = tmpMsg.Content
 					h.dirtyRooms[message.RoomID] = true
 				case "chat":
-					go h.saveChatToDB(message.RoomID, tmpMsg.Sender, tmpMsg.Message)
+					sender := tmpMsg.Sender
+					if message.Sender != nil {
+						sender = message.Sender.Username
+					}
+					go h.saveChatToDB(message.RoomID, sender, tmpMsg.Message)
 				}
 			}
 

@@ -1,86 +1,151 @@
-# CollabStudio 技术全量索引清单 (TECH_INDEX.md)
+# CollabStudio 技术索引
 
-> **版本状态**: 6913bd4 (已还原原始界面)  
-> **核心目标**: 血肉重塑 —— 从零掌握协作系统的底层实现
+更新时间：2026-04-04
 
----
+本文档用于快速定位当前项目的真实技术结构，避免继续参考过期说明。
 
-## 1. 项目概览 (Project Overview)
-本项目是一个基于 **Go (Backend)** 和 **Vue 3 (Frontend)** 的实时协同办公系统。它结合了 Wails 的桌面端能力，实现了跨平台的实时文档编辑、多人光标同步和局域网自动发现。
+## 1. 总体架构
 
----
+当前项目采用：
 
-## 2. 前端技术栈 (Frontend Architecture - CollabClient)
+- 桌面端：`Wails + Vue 3`
+- 浏览器端：`Vue 3 + Vite`
+- 后端：`Go + Gin + GORM + SQLite`
+- 实时通信：`WebSocket`
 
-### 2.1 核心框架
-- **Vue 3 (Composition API)**: 响应式界面逻辑。
-- **Vite**: 前端构建工具，提供极速的开发体验。
-- **Tiptap**: 基于 ProseMirror 的富文本编辑器核心，处理复杂的文档节点。
+当前实现不是 `Yjs` 协同版本，而是：
 
-### 2.2 关键组件清单 (`/frontend/src/components`)
-| 组件名 | 核心功能描述 | 技术要点 |
-| :--- | :--- | :--- |
-| `App.vue` | 根组件 | 负责 `Login`, `Lobby`, `Workspace` 的路由分发与状态流转。 |
-| `Login.vue` | 登录/注册 | 服务器动态 IP 配置，调用 Wails 调用局域网扫描。 |
-| `Workspace.vue` | 协作主容器 | 整合编辑器、聊天室、侧边栏；管理 WebSocket 连接生命周期。 |
-| `Editor.vue` | 协同编辑器 | Tiptap 实例化，接收并应用远程 `content` 与 `cursor` 更新。 |
-| `MenuBar.vue` | 编辑器工具栏 | 控制文档格式（加粗、标题、列表、代码块、图片上传）。 |
-| `Sidebar.vue` | 资源管理器 | 管理当前房间内的文档树（目前主要用于显示布局）。 |
+- 文档内容通过 WebSocket 广播 `doc_update`
+- 前端做内容去重后更新编辑器
+- 用户光标通过独立消息同步
 
-### 2.3 状态与通信 (`/frontend/src/`)
-- **`store.js`**: 动态管理后端服务器地址（HTTP/WS URL）。
-- **`wailsjs/`**: 自动生成的 Go 方法绑定，前端通过它调用本地系统功能（如 `ScanLanServers`）。
-- **`utils/cursor.js`**: 处理编辑器光标的计算与渲染逻辑。
+## 2. 关键目录
 
----
+### 2.1 桌面端与前端
 
-## 3. 后端技术栈 (Backend Architecture - CollabServer)
+- `CollabClient/main.go`
+  - Wails 应用入口
+  - 管理窗口尺寸、关闭拦截和资源嵌入
 
-### 3.1 核心框架
-- **Go (Golang)**: 高并发后端引擎。
-- **Gin**: 轻量级 HTTP Web 框架。
-- **GORM**: 数据库 ORM，负责模型映射与迁移。
-- **JWT (golang-jwt)**: 身份验证与令牌管理。
+- `CollabClient/app.go`
+  - 桌面端启动逻辑
+  - 自动拉起同目录后端
+  - 桌面文件打开/保存
+  - 关闭确认与工作区状态
 
-### 3.2 关键模块清单
-| 文件夹 | 功能描述 | 技术要点 |
-| :--- | :--- | :--- |
-| `main.go` | 程序入口 | 初始化数据库/Redis、启动 HTTP 服务 (Port 80)、启动 UDP 广播。 |
-| `websocket/` | 实时通信核心 | `hub.go` 管理所有房间和连接；`client.go` 处理单个连接的消息读写。 |
-| `controllers/` | 业务逻辑处理 | `auth.go` (用户认证), `upload.go` (文件存储), `user.go` (用户管理)。 |
-| `database/` | 持久化与缓存 | `db.go` (SQLite/MySQL 连接), `redis.go` (Redis 缓存初始化)。 |
-| `models/` | 数据模型定义 | 定义 User, Document, Message, History 的数据库结构。 |
-| `middleware/` | 中间件 | `auth.go` 拦截请求并校验 JWT Token。 |
+- `CollabClient/frontend/src/App.vue`
+  - 前端根组件
+  - 管理 `login / lobby / workspace`
+  - 管理多房间标签页
 
----
+- `CollabClient/frontend/src/components/Login.vue`
+  - 登录 / 注册界面
+  - 服务器地址手动配置
 
-## 4. 核心工作流 (Core Workflows)
+- `CollabClient/frontend/src/components/Lobby.vue`
+  - 大厅界面
+  - 最近访问记录与进入房间入口
 
-### 4.1 实时同步流程 (The Sync Loop)
-1. **输入**: 用户在 `Editor.vue` 中修改内容。
-2. **发送**: `Workspace.vue` 通过 WebSocket 发送 `type: content` 消息。
-3. **分发**: `CollabServer` 的 `Hub` 接收消息，并将其广播给该房间内除发送者外的所有 `Client`。
-4. **接收**: 远程前端收到消息，调用 `editor.commands.setContent` (带防抖处理)。
+- `CollabClient/frontend/src/components/Workspace.vue`
+  - 协作工作区主容器
+  - 管理 WebSocket、聊天、AI 面板与图片上传
 
-### 4.2 局域网发现 (LAN Discovery)
-- **服务端**: `startUDPDiscoveryService` 监听 UDP 9999 端口，收到 `WHOIS_COLLAB_HOST` 后回传主机名。
-- **客户端**: `App.go` 中的 `ScanLanServers` 发送 UDP 广播包，收集响应并返回给 Vue 界面。
+- `CollabClient/frontend/src/components/Editor.vue`
+  - Tiptap 编辑器实例
 
-### 4.3 身份验证 (Auth)
-- 登录成功后，后端返回 JWT Token。
-- 前端将其存入 `localStorage`。
-- 后续 HTTP 请求（如 `/history`）在 Header 中携带 `Authorization: Bearer <token>`。
-- WebSocket 连接通过 Query 参数 `?token=<token>` 进行校验。
+- `CollabClient/frontend/src/components/MenuBar.vue`
+  - 编辑器格式工具栏
 
----
+- `CollabClient/frontend/src/components/AiPanel.vue`
+  - AI 总结、翻译、润色与自由提问
 
-## 5. 反向工程指导 (Reverse Engineering Guidance)
+- `CollabClient/frontend/src/store.js`
+  - 服务端地址选择与 HTTP / WS URL 生成
 
-### 5.1 如何脱离 AI 复刻该项目？
-1. **理解 WebSocket**: 必须亲手写一个原生的 `net/http` WebSocket 升级程序，理解 `Upgrader` 的原理。
-2. **掌握 Gin 中间件**: 理解 `c.Next()` 和 `c.Abort()` 的调用链控制。
-3. **编辑器原理**: 研究 Tiptap/ProseMirror 的 `Transaction` 和 `Step` 概念，这是协同编辑的基础。
-4. **并发控制**: 深入理解 `Hub` 中 `register`, `unregister`, `broadcast` 三个 channel 的协作模式，避免 Race Condition。
+- `CollabClient/frontend/src/utils/auth.js`
+  - JWT 存取与旧 token 迁移
 
----
-*此索引由 AI 技术管家生成，作为“血肉重塑”计划的导航地图。*
+## 3. 后端关键模块
+
+- `CollabServer/main.go`
+  - 加载配置
+  - 初始化数据库
+  - 配置 Gin 路由与 CORS
+  - 暴露 `/ping`、认证接口、历史记录接口、上传接口和 WebSocket
+
+- `CollabServer/config/config.go`
+  - 加载和生成 `.env`
+
+- `CollabServer/database/db.go`
+  - 连接 SQLite 并初始化 GORM
+
+- `CollabServer/controllers/auth.go`
+  - 注册 / 登录
+
+- `CollabServer/controllers/user.go`
+  - 历史访问记录等用户相关接口
+
+- `CollabServer/controllers/upload.go`
+  - 图片上传
+
+- `CollabServer/controllers/ai.go`
+  - AI 聊天代理与流式响应
+
+- `CollabServer/websocket/hub.go`
+  - 房间、连接与广播管理
+
+- `CollabServer/websocket/client.go`
+  - 单连接收发与消息处理
+
+## 4. 当前真实功能边界
+
+### 已实现
+
+- 账号注册与登录
+- 房间式多人协作
+- 在线成员列表
+- 聊天消息与图片消息
+- 富文本编辑
+- AI 面板调用
+- 桌面端一键启动同目录后端
+
+### 当前不应写成“已完整交付”
+
+- 浏览器端局域网扫描
+- 完整自动化测试体系
+- 完整产物归档与仓库净化
+
+## 5. 调试与验证建议
+
+### 后端
+
+```powershell
+cd CollabServer
+go test ./...
+```
+
+### 前端
+
+```powershell
+cd CollabClient/frontend
+npm run build
+```
+
+### 桌面端
+
+```powershell
+cd CollabClient
+go test ./...
+wails build
+```
+
+## 6. 使用原则
+
+如果后续文档、论文或答辩说明与当前源码不一致，应优先以以下文件为准：
+
+- `CollabClient/app.go`
+- `CollabClient/main.go`
+- `CollabClient/frontend/src/`
+- `CollabServer/main.go`
+- `CollabServer/controllers/`
+- `CollabServer/websocket/`
