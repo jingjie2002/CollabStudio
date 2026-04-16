@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
+	"strings"
 	"syscall"
 	"time"
 
@@ -22,6 +25,13 @@ type App struct {
 	forceClose bool      // 标记是否确认强制退出
 	loggedIn   bool      // 标记是否已登录（未登录时允许直接关闭窗口）
 	serverCmd  *exec.Cmd // 后端子进程句柄
+}
+
+type LANServer struct {
+	Name        string `json:"name"`
+	IP          string `json:"ip"`
+	Tag         string `json:"tag"`
+	Recommended bool   `json:"recommended"`
 }
 
 // NewApp creates a new App application struct
@@ -69,6 +79,79 @@ func (a *App) ConfirmExit() {
 // 只有已登录状态才会触发关闭拦截（防止登录页无法关闭窗口）
 func (a *App) SetLoggedIn(status bool) {
 	a.loggedIn = status
+}
+
+// ScanLANServers scans the local network for running CollabServer instances.
+func (a *App) ScanLANServers() []LANServer {
+	const discoveryPort = 9999
+	const defaultHTTPPort = "8080"
+
+	found := make(map[string]LANServer)
+
+	if a.checkPortAlive() {
+		found["localhost:"+defaultHTTPPort] = LANServer{
+			Name: "本机服务器",
+			IP:   "localhost:" + defaultHTTPPort,
+			Tag:  "本机",
+		}
+	}
+
+	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: 0})
+	if err != nil {
+		log.Printf("⚠️ 局域网扫描启动失败: %v", err)
+		return prioritizeLANServers(found)
+	}
+	defer conn.Close()
+
+	deadline := time.Now().Add(1500 * time.Millisecond)
+	if err := conn.SetDeadline(deadline); err != nil {
+		log.Printf("⚠️ 设置局域网扫描超时失败: %v", err)
+	}
+
+	message := []byte("WHOIS_COLLAB_HOST")
+	for _, target := range discoveryTargets(discoveryPort) {
+		if _, err := conn.WriteToUDP(message, target); err != nil {
+			log.Printf("⚠️ 发送局域网扫描包失败 target=%s err=%v", target.String(), err)
+		}
+	}
+
+	buf := make([]byte, 1024)
+	for {
+		n, remoteAddr, err := conn.ReadFromUDP(buf)
+		if err != nil {
+			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+				break
+			}
+			log.Printf("⚠️ 读取局域网扫描响应失败: %v", err)
+			break
+		}
+
+		payload := strings.TrimSpace(string(buf[:n]))
+		parts := strings.Split(payload, "|")
+		if len(parts) < 2 || parts[0] != "IAM_HOST" {
+			continue
+		}
+
+		name := strings.TrimSpace(parts[1])
+		if name == "" {
+			name = "CollabStudio 主机"
+		}
+
+		port := defaultHTTPPort
+		if len(parts) >= 3 && strings.TrimSpace(parts[2]) != "" {
+			port = strings.TrimSpace(parts[2])
+		}
+
+		host := remoteAddr.IP.String()
+		address := net.JoinHostPort(host, port)
+		if strings.Contains(host, ".") {
+			address = host + ":" + port
+		}
+
+		found[address] = LANServer{Name: name, IP: address}
+	}
+
+	return prioritizeLANServers(found)
 }
 
 // =============================================================================
@@ -257,4 +340,207 @@ func (a *App) OpenFile() string {
 		return fmt.Sprintf("Error reading file: %s", err)
 	}
 	return string(data)
+}
+
+func discoveryTargets(port int) []*net.UDPAddr {
+	targets := map[string]*net.UDPAddr{
+		fmt.Sprintf("255.255.255.255:%d", port): {IP: net.IPv4bcast, Port: port},
+		fmt.Sprintf("127.0.0.1:%d", port):       {IP: net.IPv4(127, 0, 0, 1), Port: port},
+	}
+
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return serversFromTargetMap(targets)
+	}
+
+	for _, iface := range interfaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+
+		for _, addr := range addrs {
+			ipNet, ok := addr.(*net.IPNet)
+			if !ok || ipNet.IP == nil {
+				continue
+			}
+			ip := ipNet.IP.To4()
+			if ip == nil || len(ipNet.Mask) != net.IPv4len {
+				continue
+			}
+
+			broadcast := net.IPv4(
+				ip[0]|^ipNet.Mask[0],
+				ip[1]|^ipNet.Mask[1],
+				ip[2]|^ipNet.Mask[2],
+				ip[3]|^ipNet.Mask[3],
+			)
+			key := fmt.Sprintf("%s:%d", broadcast.String(), port)
+			targets[key] = &net.UDPAddr{IP: broadcast, Port: port}
+		}
+	}
+
+	return serversFromTargetMap(targets)
+}
+
+func serversFromTargetMap(targets map[string]*net.UDPAddr) []*net.UDPAddr {
+	keys := make([]string, 0, len(targets))
+	for key := range targets {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	result := make([]*net.UDPAddr, 0, len(keys))
+	for _, key := range keys {
+		result = append(result, targets[key])
+	}
+	return result
+}
+
+func prioritizeLANServers(found map[string]LANServer) []LANServer {
+	localHostname, _ := os.Hostname()
+	localKey := normalizeServerName(localHostname)
+
+	bestByHost := make(map[string]LANServer)
+	bestRankByHost := make(map[string]int)
+
+	for _, server := range found {
+		server = decorateLANServer(server, localKey)
+		hostKey := dedupeHostKey(server, localKey)
+		rank := lanServerRank(server, localKey)
+
+		if existingRank, exists := bestRankByHost[hostKey]; !exists || rank < existingRank || (rank == existingRank && server.IP < bestByHost[hostKey].IP) {
+			bestByHost[hostKey] = server
+			bestRankByHost[hostKey] = rank
+		}
+	}
+
+	result := make([]LANServer, 0, len(bestByHost))
+	for _, server := range bestByHost {
+		result = append(result, server)
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		leftRank := lanServerRank(result[i], localKey)
+		rightRank := lanServerRank(result[j], localKey)
+		if leftRank != rightRank {
+			return leftRank < rightRank
+		}
+		if result[i].Name != result[j].Name {
+			return result[i].Name < result[j].Name
+		}
+		return result[i].IP < result[j].IP
+	})
+
+	return result
+}
+
+func decorateLANServer(server LANServer, localKey string) LANServer {
+	host := hostPart(server.IP)
+	ip := net.ParseIP(host)
+	isLocal := isLocalServer(server, localKey)
+
+	switch {
+	case isUsableLANIP(ip) && !isLocal:
+		server.Tag = "推荐"
+		server.Recommended = true
+	case isUsableLANIP(ip) && isLocal:
+		server.Tag = "本机"
+		server.Recommended = false
+	case isLoopbackHost(host, ip):
+		server.Tag = "本机"
+		server.Recommended = false
+	default:
+		server.Tag = "备用"
+		server.Recommended = false
+	}
+
+	return server
+}
+
+func dedupeHostKey(server LANServer, localKey string) string {
+	nameKey := normalizeServerName(server.Name)
+	if isLocalServer(server, localKey) {
+		return "local"
+	}
+	if nameKey != "" && nameKey != "collabstudio 主机" {
+		return "host:" + nameKey
+	}
+	return "addr:" + hostPart(server.IP)
+}
+
+func lanServerRank(server LANServer, localKey string) int {
+	host := hostPart(server.IP)
+	ip := net.ParseIP(host)
+	isLocal := isLocalServer(server, localKey)
+
+	switch {
+	case isUsableLANIP(ip) && !isLocal:
+		return 10
+	case isUsableLANIP(ip) && isLocal:
+		return 30
+	case isLoopbackHost(host, ip):
+		return 60
+	case isLinkLocalIPv4(ip):
+		return 80
+	case isBenchmarkIPv4(ip):
+		return 90
+	default:
+		return 70
+	}
+}
+
+func isLocalServer(server LANServer, localKey string) bool {
+	if localKey == "" {
+		return strings.EqualFold(server.Name, "本机服务器")
+	}
+	nameKey := normalizeServerName(server.Name)
+	return nameKey == localKey || strings.EqualFold(server.Name, "本机服务器")
+}
+
+func normalizeServerName(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
+}
+
+func hostPart(address string) string {
+	host, _, err := net.SplitHostPort(address)
+	if err == nil {
+		return strings.Trim(host, "[]")
+	}
+
+	if idx := strings.LastIndex(address, ":"); idx > -1 {
+		return strings.Trim(address[:idx], "[]")
+	}
+	return strings.Trim(address, "[]")
+}
+
+func isLoopbackHost(host string, ip net.IP) bool {
+	return strings.EqualFold(host, "localhost") || (ip != nil && ip.IsLoopback())
+}
+
+func isUsableLANIP(ip net.IP) bool {
+	ipv4 := ip.To4()
+	if ipv4 == nil {
+		return false
+	}
+	if isLinkLocalIPv4(ipv4) || isBenchmarkIPv4(ipv4) || ipv4[0] == 127 || ipv4[0] == 0 {
+		return false
+	}
+	return ipv4[0] == 10 ||
+		(ipv4[0] == 172 && ipv4[1] >= 16 && ipv4[1] <= 31) ||
+		(ipv4[0] == 192 && ipv4[1] == 168)
+}
+
+func isLinkLocalIPv4(ip net.IP) bool {
+	ipv4 := ip.To4()
+	return ipv4 != nil && ipv4[0] == 169 && ipv4[1] == 254
+}
+
+func isBenchmarkIPv4(ip net.IP) bool {
+	ipv4 := ip.To4()
+	return ipv4 != nil && ipv4[0] == 198 && (ipv4[1] == 18 || ipv4[1] == 19)
 }

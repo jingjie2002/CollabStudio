@@ -150,7 +150,8 @@ func main() {
 	// -------------------------------------------------------------------------
 	// 🎯 启动辅助服务
 	// -------------------------------------------------------------------------
-	go startUDPDiscoveryService() // 局域网发现服务
+	serverPort := getServerPort()
+	go startUDPDiscoveryService(serverPort) // 局域网发现服务
 
 	// -------------------------------------------------------------------------
 	// 📂 静态资源服务配置
@@ -250,7 +251,7 @@ func main() {
 	// ==========================================================================
 	// 阶段 4：启动 HTTP 服务器（环境自动判定端口）
 	// ==========================================================================
-	port := getServerPort()
+	port := serverPort
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: r,
@@ -331,7 +332,7 @@ func gracefulShutdown(srv *http.Server) {
 // 原理：监听 UDP 9999 端口，当收到 "WHOIS_COLLAB_HOST" 暗号时，
 // 回复 "IAM_HOST|主机名"，让同一局域网内的客户端能找到服务器。
 // =============================================================================
-func startUDPDiscoveryService() {
+func startUDPDiscoveryService(httpPort string) {
 	discoveryPortStr := config.GetEnv("DISCOVERY_PORT", "9999")
 	discoveryPort, _ := strconv.Atoi(discoveryPortStr)
 
@@ -363,7 +364,7 @@ func startUDPDiscoveryService() {
 			if hostname == "" {
 				hostname = "Unknown-Host"
 			}
-			reply := fmt.Sprintf("IAM_HOST|%s", hostname)
+			reply := fmt.Sprintf("IAM_HOST|%s|%s", hostname, httpPort)
 			conn.WriteToUDP([]byte(reply), remoteAddr)
 		}
 	}

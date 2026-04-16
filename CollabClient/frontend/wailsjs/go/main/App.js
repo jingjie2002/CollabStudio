@@ -22,6 +22,10 @@ export function SaveFile(arg1) {
   return window['go']['main']['App']['SaveFile'](arg1);
 }
 
+export function ScanLANServers() {
+  return window['go']['main']['App']['ScanLANServers']();
+}
+
 export function SetLoggedIn(arg1) {
   return window['go']['main']['App']['SetLoggedIn'](arg1);
 }

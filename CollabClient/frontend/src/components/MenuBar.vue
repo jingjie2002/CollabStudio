@@ -115,6 +115,7 @@
 import { ref } from 'vue'
 // 🟢 引入全局配置
 import { serverConfig } from '../store'
+import { getAuthToken } from '../utils/auth'
 
 const props = defineProps({
   editor: {
@@ -139,9 +140,18 @@ const handleImageUpload = async (event) => {
   formData.append('image', file)
 
   try {
+    const token = getAuthToken()
+    if (!token) {
+      alert('登录状态已失效，请重新登录')
+      return
+    }
+
     // 🟢 动态地址请求后端
     const response = await fetch(`${serverConfig.getHttpUrl()}/upload`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
       body: formData
     })
 
@@ -149,7 +159,8 @@ const handleImageUpload = async (event) => {
 
     if (data.url) {
       // 成功！将图片插入编辑器
-      props.editor.chain().focus().setImage({ src: data.url }).run()
+      const imageUrl = data.url.startsWith('http') ? data.url : `${serverConfig.getHttpUrl()}${data.url}`
+      props.editor.chain().focus().setImage({ src: imageUrl }).run()
     } else {
       alert('图片上传失败: ' + (data.error || '未知错误'))
     }

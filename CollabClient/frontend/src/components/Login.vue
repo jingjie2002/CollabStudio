@@ -69,7 +69,10 @@
             <div v-for="srv in foundServers" :key="srv.ip" class="server-item" @click="selectServer(srv.ip)">
               <div class="server-icon"><i class="ri-server-line"></i></div>
               <div class="server-info">
-                <div class="server-name">{{ srv.name }}</div>
+                <div class="server-name">
+                  {{ srv.name }}
+                  <span v-if="srv.tag" class="server-tag" :class="{ recommended: srv.recommended }">{{ srv.tag }}</span>
+                </div>
                 <div class="server-ip">{{ srv.ip }}</div>
               </div>
               <i class="ri-add-circle-line add-icon"></i>
@@ -90,6 +93,7 @@
 import { ref, onMounted } from 'vue'
 import { serverConfig } from '../store'
 import { setAuthToken } from '../utils/auth'
+import { ScanLANServers } from '../../wailsjs/go/main/App'
 
 const emit = defineEmits(['login'])
 
@@ -156,14 +160,44 @@ const handleAuth = async () => {
   }
 }
 
-// 扫描局域网服务器（Web端不支持，提示用户）
 const scanServers = async () => {
-  alert("网页端暂不支持局域网扫描，请直接输入服务器 IP")
+  if (typeof window === 'undefined' || typeof window.go === 'undefined') {
+    alert("浏览器预览模式不支持局域网扫描，请在桌面客户端中使用，或直接输入服务器 IP")
+    return
+  }
+
+  isScanning.value = true
+  scanFinished.value = false
+  foundServers.value = []
+
+  try {
+    const servers = await ScanLANServers()
+    foundServers.value = (servers || []).map((srv) => ({
+      name: srv.name || srv.Name || 'CollabStudio 主机',
+      ip: srv.ip || srv.IP,
+      tag: srv.tag || srv.Tag || '',
+      recommended: !!(srv.recommended || srv.Recommended)
+    })).filter((srv) => !!srv.ip)
+
+    const recommendedServers = foundServers.value.filter((srv) => srv.recommended)
+    if (recommendedServers.length === 1) {
+      serverAddress.value = recommendedServers[0].ip
+    } else if (foundServers.value.length === 1) {
+      serverAddress.value = foundServers.value[0].ip
+    }
+  } catch (e) {
+    console.error(e)
+    alert("局域网扫描失败，请直接输入房主电脑 IP:8080")
+  } finally {
+    isScanning.value = false
+    scanFinished.value = true
+  }
 }
 
 // 选中扫描到的服务器
 const selectServer = (ip) => {
   serverAddress.value = ip
+  serverConfig.setHost(ip)
   foundServers.value = []
 }
 </script>
@@ -407,6 +441,26 @@ const selectServer = (ip) => {
   font-weight: bold;
   color: #cdd6f4;
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.server-tag {
+  font-size: 0.68rem;
+  line-height: 1;
+  padding: 3px 5px;
+  border-radius: 999px;
+  color: #a6adc8;
+  border: 1px solid rgba(166, 173, 200, 0.25);
+  background: rgba(166, 173, 200, 0.08);
+}
+
+.server-tag.recommended {
+  color: #1e1e2e;
+  background: #a6e3a1;
+  border-color: #a6e3a1;
 }
 
 .server-ip {

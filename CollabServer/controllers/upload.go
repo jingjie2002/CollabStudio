@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"collab-server/config"
 	"fmt"
 	"io"
 	"net/http"
@@ -53,7 +54,7 @@ func UploadImage(c *gin.Context) {
 	}
 
 	// 3. 准备保存目录
-	uploadPath := "./uploads"
+	uploadPath := config.GetEnv("UPLOAD_DIR", "uploads")
 	if _, err := os.Stat(uploadPath); os.IsNotExist(err) {
 		os.Mkdir(uploadPath, 0755) // 如果目录不存在则创建
 	}
