@@ -15,3 +15,7 @@ export function SaveFile(arg1:string):Promise<string>;
 export function ScanLANServers():Promise<Array<main.LANServer>>;
 
 export function SetLoggedIn(arg1:boolean):Promise<void>;
+
+export function SetRoomHostActive(arg1:boolean):Promise<void>;
+
+export function SetWorkspaceActive(arg1:boolean):Promise<void>;

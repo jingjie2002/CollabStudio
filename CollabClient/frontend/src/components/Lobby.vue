@@ -248,7 +248,14 @@ onMounted(() => { fetchHistory() })
 
 .stage-content { width: 100%; max-width: 480px; text-align: center; }
 
-.welcome-header h1 { font-size: 2.5rem; margin: 0 0 8px; background: linear-gradient(to right, white, #94a3b8); -webkit-background-clip: text; color: transparent; }
+.welcome-header h1 {
+  font-size: 2.5rem;
+  margin: 0 0 8px;
+  background: linear-gradient(to right, var(--hero-title-start), var(--hero-title-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 .welcome-header p { color: var(--text-muted); margin-bottom: 40px; font-size: 1.1rem; }
 
 .room-entry-card {
@@ -264,8 +271,10 @@ onMounted(() => { fetchHistory() })
 .prefix-icon { position: absolute; left: 16px; color: var(--text-muted); font-size: 1.2rem; }
 .input-group input {
   width: 100%; padding: 16px 16px 16px 44px; border: none; background: transparent;
-  color: white; font-size: 1.1rem; outline: none;
+  color: var(--room-input-text); font-size: 1.1rem; outline: none;
+  caret-color: var(--primary-color);
 }
+.input-group input::placeholder { color: var(--text-muted); opacity: 0.75; }
 
 .btn-enter {
   padding: 0 32px; border: none; border-radius: 8px;

@@ -20,11 +20,13 @@ import (
 
 // App struct
 type App struct {
-	ctx        context.Context
-	isHost     bool      // 标记是否为房主
-	forceClose bool      // 标记是否确认强制退出
-	loggedIn   bool      // 标记是否已登录（未登录时允许直接关闭窗口）
-	serverCmd  *exec.Cmd // 后端子进程句柄
+	ctx             context.Context
+	isHost          bool      // 标记是否为本机后端服务启动者
+	forceClose      bool      // 标记是否确认强制退出
+	loggedIn        bool      // 标记是否已登录（未登录时允许直接关闭窗口）
+	workspaceActive bool      // 标记当前是否处于工作区视图
+	roomHostActive  bool      // 标记当前激活房间中本人是否为房主
+	serverCmd       *exec.Cmd // 后端子进程句柄
 }
 
 type LANServer struct {
@@ -58,7 +60,7 @@ func (a *App) shutdown(ctx context.Context) {
 	a.killBackendServer()
 }
 
-// IsHostUser 供前端查询是否为房主
+// IsHostUser 供前端查询是否为本机后端服务启动者
 func (a *App) IsHostUser() bool {
 	return a.isHost
 }
@@ -79,6 +81,24 @@ func (a *App) ConfirmExit() {
 // 只有已登录状态才会触发关闭拦截（防止登录页无法关闭窗口）
 func (a *App) SetLoggedIn(status bool) {
 	a.loggedIn = status
+	if !status {
+		a.workspaceActive = false
+		a.roomHostActive = false
+	}
+}
+
+// SetWorkspaceActive 前端视图变化时调用。
+// 只有处于工作区视图时才需要房主关闭保护；大厅允许直接关闭窗口。
+func (a *App) SetWorkspaceActive(status bool) {
+	a.workspaceActive = status
+	if !status {
+		a.roomHostActive = false
+	}
+}
+
+// SetRoomHostActive 前端激活房间房主状态变化时调用。
+func (a *App) SetRoomHostActive(status bool) {
+	a.roomHostActive = status
 }
 
 // ScanLANServers scans the local network for running CollabServer instances.

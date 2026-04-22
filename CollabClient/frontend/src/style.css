@@ -15,6 +15,11 @@
     /* 文字体系 */
     --text-main: #f4f4f5;
     --text-muted: #a1a1aa;
+    --room-input-text: #ffffff;
+    --hero-title-start: #ffffff;
+    --hero-title-end: #94a3b8;
+    --app-font-size: 15px;
+    --app-font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
 
     /* 布局参数 */
     --header-height: 56px;
@@ -39,14 +44,21 @@
 
     --text-main: #18181b;
     --text-muted: #71717a;
+    --room-input-text: #18181b;
+    --hero-title-start: #111827;
+    --hero-title-end: #64748b;
 
     --scrollbar-thumb: #a1a1aa;
     --scrollbar-hover: #71717a;
 }
 
+html {
+    font-size: var(--app-font-size);
+}
+
 body {
     margin: 0;
-    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    font-family: var(--app-font-family);
     background-color: var(--bg-main);
     color: var(--text-main);
     overflow: hidden; /* 防止最外层出现滚动条 */
@@ -73,6 +85,13 @@ body {
 }
 
 /* 通用按钮样式重置 */
+button {
+    font-family: inherit;
+}
+
+input,
+textarea,
+select,
 button {
     font-family: inherit;
 }

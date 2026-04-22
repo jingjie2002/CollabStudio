@@ -11,8 +11,10 @@ import (
 )
 
 type RoomData struct {
-	Clients map[*Client]bool
-	Content string
+	Clients      map[*Client]bool
+	Content      string
+	HostUUID     string
+	HostUsername string
 }
 
 type BroadcastMessage struct {
@@ -23,6 +25,7 @@ type BroadcastMessage struct {
 
 type WSMessage struct {
 	Type       string           `json:"type"`
+	RoomID     string           `json:"roomId,omitempty"`
 	Content    string           `json:"content,omitempty"`
 	Message    string           `json:"message,omitempty"`
 	Sender     string           `json:"sender,omitempty"`
@@ -30,6 +33,8 @@ type WSMessage struct {
 	Users      []string         `json:"users,omitempty"`
 	History    []models.Message `json:"history,omitempty"`
 	Cursor     int              `json:"cursor,omitempty"`
+	IsHost     bool             `json:"isHost,omitempty"`
+	Host       string           `json:"host,omitempty"`
 }
 
 type Hub struct {
@@ -108,12 +113,20 @@ func (h *Hub) Run() {
 			// 简单的踢人逻辑 (防止多开)
 			for existingClient := range room.Clients {
 				if existingClient.Username == client.Username {
+					if room.HostUUID == existingClient.UUID {
+						room.HostUUID = ""
+						room.HostUsername = ""
+					}
 					close(existingClient.Send)
 					delete(room.Clients, existingClient)
 				}
 			}
 
 			room.Clients[client] = true
+			if room.HostUUID == "" {
+				room.HostUUID = client.UUID
+				room.HostUsername = client.Username
+			}
 			log.Printf("Join: %s (Room: %s)", client.Username, roomID)
 
 			// 初始数据发送 (尽力而为)
@@ -133,82 +146,13 @@ func (h *Hub) Run() {
 				}
 			}
 			h.broadcastUserList(roomID)
+			h.broadcastHostStatus(roomID)
 
 		case client := <-h.unregister:
-			roomID := client.RoomID
-			if room, ok := h.rooms[roomID]; ok {
-				if _, ok := room.Clients[client]; ok {
-					delete(room.Clients, client)
-					close(client.Send)
-					h.broadcastUserList(roomID)
-
-					// 🧹 空房间自动清理：最后一人离开后保存文档并销毁内存房间
-					if len(room.Clients) == 0 {
-						if room.Content != "" {
-							h.saveDocumentToDB(roomID, room.Content)
-						}
-						delete(h.rooms, roomID)
-						delete(h.dirtyRooms, roomID)
-						log.Printf("🧹 房间 %s 已空，内存已清理", roomID)
-					}
-				}
-			}
+			h.handleUnregister(client)
 
 		case message := <-h.broadcast:
-			if room, ok := h.rooms[message.RoomID]; ok {
-				// 🟢 先解析消息类型，用于智能过滤
-				var tmpMsg WSMessage
-				msgType := ""
-				if err := json.Unmarshal(message.Message, &tmpMsg); err == nil {
-					msgType = tmpMsg.Type
-					if message.Sender != nil {
-						// 服务端覆盖 sender，避免客户端伪造身份。
-						tmpMsg.Sender = message.Sender.Username
-						rebuilt, marshalErr := json.Marshal(tmpMsg)
-						if marshalErr == nil {
-							message.Message = rebuilt
-						}
-					}
-				}
-
-				// 🟢 核心修复：分级广播 + UUID 双重过滤
-				// - doc_update: 只发给其他人（避免同步回环闪烁）
-				// - user_list/chat/cursor_update 等: 发给所有人（包括发送者）
-				for client := range room.Clients {
-					// 🔴 doc_update 消息需要排除发送者（双重验证：指针 + UUID）
-					if msgType == "doc_update" {
-						// 方式1：指针比较
-						if message.Sender != nil && client == message.Sender {
-							continue
-						}
-						// 方式2：UUID 比较（更可靠，即使指针比较失效）
-						if tmpMsg.ClientUUID != "" && client.UUID == tmpMsg.ClientUUID {
-							continue
-						}
-					}
-					select {
-					case client.Send <- message.Message:
-						// 发送成功
-					default:
-						// 缓冲区满，静默丢弃。
-						// 因为文档是全量同步的，丢一包没关系，下一包会修正。
-						// 只要不阻塞 Hub，其他人的体验就是流畅的。
-					}
-				}
-
-				// 处理数据持久化
-				switch msgType {
-				case "doc_update":
-					room.Content = tmpMsg.Content
-					h.dirtyRooms[message.RoomID] = true
-				case "chat":
-					sender := tmpMsg.Sender
-					if message.Sender != nil {
-						sender = message.Sender.Username
-					}
-					go h.saveChatToDB(message.RoomID, sender, tmpMsg.Message)
-				}
-			}
+			h.handleBroadcast(message)
 
 		case <-saveTicker.C:
 			for rID := range h.dirtyRooms {
@@ -218,6 +162,143 @@ func (h *Hub) Run() {
 			}
 			h.dirtyRooms = make(map[string]bool)
 		}
+	}
+}
+
+func (h *Hub) handleUnregister(client *Client) {
+	roomID := client.RoomID
+	if room, ok := h.rooms[roomID]; ok {
+		if _, ok := room.Clients[client]; ok {
+			if room.HostUUID == client.UUID {
+				h.dissolveRoom(roomID, client, "房主已离开，房间已解散")
+				return
+			}
+
+			delete(room.Clients, client)
+			close(client.Send)
+			h.broadcastUserList(roomID)
+
+			// 🧹 空房间自动清理：最后一人离开后保存文档并销毁内存房间
+			if len(room.Clients) == 0 {
+				if room.Content != "" {
+					h.saveDocumentToDB(roomID, room.Content)
+				}
+				delete(h.rooms, roomID)
+				delete(h.dirtyRooms, roomID)
+				log.Printf("🧹 房间 %s 已空，内存已清理", roomID)
+			}
+		}
+	}
+}
+
+func (h *Hub) handleBroadcast(message BroadcastMessage) {
+	if room, ok := h.rooms[message.RoomID]; ok {
+		// 🟢 先解析消息类型，用于智能过滤
+		var tmpMsg WSMessage
+		msgType := ""
+		if err := json.Unmarshal(message.Message, &tmpMsg); err == nil {
+			msgType = tmpMsg.Type
+			if message.Sender != nil {
+				// 服务端覆盖 sender，避免客户端伪造身份。
+				tmpMsg.Sender = message.Sender.Username
+				rebuilt, marshalErr := json.Marshal(tmpMsg)
+				if marshalErr == nil {
+					message.Message = rebuilt
+				}
+			}
+		}
+
+		if msgType == "dissolve_room" {
+			if message.Sender == nil || message.Sender.UUID != room.HostUUID {
+				h.sendErrorToClient(message.Sender, "只有房主可以解散房间")
+				return
+			}
+			h.dissolveRoom(message.RoomID, message.Sender, "房主已解散房间")
+			return
+		}
+
+		// 🟢 核心修复：分级广播 + UUID 双重过滤
+		// - doc_update: 只发给其他人（避免同步回环闪烁）
+		// - user_list/chat/cursor_update 等: 发给所有人（包括发送者）
+		for client := range room.Clients {
+			// 🔴 doc_update 消息需要排除发送者（双重验证：指针 + UUID）
+			if msgType == "doc_update" {
+				// 方式1：指针比较
+				if message.Sender != nil && client == message.Sender {
+					continue
+				}
+				// 方式2：UUID 比较（更可靠，即使指针比较失效）
+				if tmpMsg.ClientUUID != "" && client.UUID == tmpMsg.ClientUUID {
+					continue
+				}
+			}
+			select {
+			case client.Send <- message.Message:
+				// 发送成功
+			default:
+				// 缓冲区满，静默丢弃。
+				// 因为文档是全量同步的，丢一包没关系，下一包会修正。
+				// 只要不阻塞 Hub，其他人的体验就是流畅的。
+			}
+		}
+
+		// 处理数据持久化
+		switch msgType {
+		case "doc_update":
+			room.Content = tmpMsg.Content
+			h.dirtyRooms[message.RoomID] = true
+		case "chat":
+			sender := tmpMsg.Sender
+			if message.Sender != nil {
+				sender = message.Sender.Username
+			}
+			go h.saveChatToDB(message.RoomID, sender, tmpMsg.Message)
+		}
+	}
+}
+
+func (h *Hub) dissolveRoom(roomID string, actor *Client, reason string) {
+	room, ok := h.rooms[roomID]
+	if !ok {
+		return
+	}
+
+	if room.Content != "" {
+		h.saveDocumentToDB(roomID, room.Content)
+	}
+
+	sender := ""
+	if actor != nil {
+		sender = actor.Username
+	}
+
+	b, _ := json.Marshal(WSMessage{
+		Type:    "room_closed",
+		RoomID:  roomID,
+		Message: reason,
+		Sender:  sender,
+	})
+	for c := range room.Clients {
+		select {
+		case c.Send <- b:
+		default:
+		}
+		close(c.Send)
+	}
+
+	delete(h.rooms, roomID)
+	delete(h.dirtyRooms, roomID)
+	log.Printf("🧹 房间 %s 已解散: %s", roomID, reason)
+}
+
+func (h *Hub) sendErrorToClient(client *Client, message string) {
+	if client == nil {
+		return
+	}
+	b, _ := json.Marshal(WSMessage{Type: "error", Message: message})
+	select {
+	case client.Send <- b:
+	default:
 	}
 }
 
@@ -254,6 +335,22 @@ func (h *Hub) broadcastUserList(roomID string) {
 	b, _ := json.Marshal(WSMessage{Type: "user_list", Users: list})
 	if room, ok := h.rooms[roomID]; ok {
 		for c := range room.Clients {
+			select {
+			case c.Send <- b:
+			default:
+			}
+		}
+	}
+}
+
+func (h *Hub) broadcastHostStatus(roomID string) {
+	if room, ok := h.rooms[roomID]; ok {
+		for c := range room.Clients {
+			b, _ := json.Marshal(WSMessage{
+				Type:   "host_status",
+				IsHost: c.UUID == room.HostUUID,
+				Host:   room.HostUsername,
+			})
 			select {
 			case c.Send <- b:
 			default:

@@ -29,3 +29,11 @@ export function ScanLANServers() {
 export function SetLoggedIn(arg1) {
   return window['go']['main']['App']['SetLoggedIn'](arg1);
 }
+
+export function SetRoomHostActive(arg1) {
+  return window['go']['main']['App']['SetRoomHostActive'](arg1);
+}
+
+export function SetWorkspaceActive(arg1) {
+  return window['go']['main']['App']['SetWorkspaceActive'](arg1);
+}

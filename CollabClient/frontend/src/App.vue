@@ -35,16 +35,19 @@
             :tabs="openRooms"
             :activeRoom="activeRoom"
             @switch="switchRoom"
-            @close="closeRoom"
+            @close="requestCloseRoom"
             @add="handleAddRoom"
         />
         <Workspace
             v-for="room in openRooms"
             :key="room.roomId"
+            :ref="el => setWorkspaceRef(room.roomId, el)"
             v-show="room.roomId === activeRoom"
             :username="currentUser"
             :initial-room="room.roomId"
+            :active="room.roomId === activeRoom"
             @leave-room="handleLeaveRoom(room.roomId)"
+            @host-status="handleHostStatus"
         />
       </div>
     </template>
@@ -52,7 +55,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import Login from './components/Login.vue'
 import Lobby from './components/Lobby.vue'
 import Workspace from './components/Workspace.vue'
@@ -66,8 +69,9 @@ const currentView = ref('login')
 const currentUser = ref(null)
 
 // 多房间标签页状态
-const openRooms = reactive([])  // [{ roomId: 'xxx' }, ...]
+const openRooms = reactive([])  // [{ roomId: 'xxx', isHost: false }, ...]
 const activeRoom = ref('')
+const workspaceRefs = new Map()
 
 // 连接状态
 const isConnecting = ref(true)
@@ -113,9 +117,27 @@ const retryConnection = () => {
   checkServerAvailability()
 }
 
+const activeRoomInfo = () => openRooms.find(r => r.roomId === activeRoom.value)
+
+const setWorkspaceRef = (roomId, el) => {
+  if (el) {
+    workspaceRefs.set(roomId, el)
+  } else {
+    workspaceRefs.delete(roomId)
+  }
+}
+
+const syncCloseProtectionState = () => {
+  const workspaceActive = currentView.value === 'workspace'
+  const roomHostActive = workspaceActive && activeRoomInfo()?.isHost === true
+  try { window.go.main.App.SetWorkspaceActive(workspaceActive) } catch(e) {}
+  try { window.go.main.App.SetRoomHostActive(roomHostActive) } catch(e) {}
+}
+
 onMounted(() => {
   migrateLegacyAuthToken()
   initSettings()
+  syncCloseProtectionState()
   checkServerAvailability()
 })
 
@@ -124,6 +146,7 @@ const handleLoginSuccess = (username) => {
   console.log("[App] Login success:", username)
   currentUser.value = username
   currentView.value = 'lobby'
+  syncCloseProtectionState()
   try { window.go.main.App.SetLoggedIn(true) } catch(e) {}
 }
 
@@ -137,6 +160,7 @@ const handleEnterRoom = (roomId) => {
   if (existing) {
     activeRoom.value = roomId
     currentView.value = 'workspace'
+    syncCloseProtectionState()
     return
   }
 
@@ -147,14 +171,33 @@ const handleEnterRoom = (roomId) => {
   }
 
   // 新开标签页
-  openRooms.push({ roomId })
+  openRooms.push({ roomId, isHost: false })
   activeRoom.value = roomId
   currentView.value = 'workspace'
+  syncCloseProtectionState()
 }
 
 // 切换标签页
 const switchRoom = (roomId) => {
   activeRoom.value = roomId
+  syncCloseProtectionState()
+}
+
+// 请求关闭标签页：房主需要先确认，普通成员直接离开。
+const requestCloseRoom = async (roomId) => {
+  const room = openRooms.find(r => r.roomId === roomId)
+  if (!room) return
+
+  if (!room.isHost) {
+    closeRoom(roomId)
+    return
+  }
+
+  activeRoom.value = roomId
+  currentView.value = 'workspace'
+  syncCloseProtectionState()
+  await nextTick()
+  workspaceRefs.get(roomId)?.requestLeaveRoom?.()
 }
 
 // 关闭标签页
@@ -163,15 +206,18 @@ const closeRoom = (roomId) => {
   if (idx === -1) return
 
   openRooms.splice(idx, 1)
+  workspaceRefs.delete(roomId)
 
   if (openRooms.length === 0) {
     // 最后一个标签页关闭，回到大厅
     activeRoom.value = ''
     currentView.value = 'lobby'
+    syncCloseProtectionState()
   } else if (activeRoom.value === roomId) {
     // 关闭的是当前标签，切换到相邻标签
     const newIdx = Math.min(idx, openRooms.length - 1)
     activeRoom.value = openRooms[newIdx].roomId
+    syncCloseProtectionState()
   }
 }
 
@@ -183,6 +229,16 @@ const handleLeaveRoom = (roomId) => {
 // 返回大厅加入新房间（保持已有标签）
 const handleAddRoom = () => {
   currentView.value = 'lobby'
+  syncCloseProtectionState()
+}
+
+const handleHostStatus = ({ roomId, isHost }) => {
+  const room = openRooms.find(r => r.roomId === roomId)
+  if (!room) return
+  room.isHost = isHost === true
+  if (roomId === activeRoom.value) {
+    syncCloseProtectionState()
+  }
 }
 
 // 处理退出登录（关闭所有标签）
@@ -191,8 +247,10 @@ const handleLogout = () => {
   clearAuthToken()
   currentUser.value = null
   openRooms.splice(0, openRooms.length)
+  workspaceRefs.clear()
   activeRoom.value = ''
   currentView.value = 'login'
+  syncCloseProtectionState()
   try { window.go.main.App.SetLoggedIn(false) } catch(e) {}
 }
 </script>

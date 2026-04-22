@@ -86,10 +86,23 @@ export function applyTheme(theme) {
 
 // 应用字体到全局
 export function applyFont() {
+    const fontSize = settings.fontSize + 'px'
+    const fontFamily = settings.fontFamily + ', sans-serif'
+    const documentRoot = document.documentElement
+    if (documentRoot) {
+        documentRoot.style.fontSize = fontSize
+        documentRoot.style.setProperty('--app-font-size', fontSize)
+        documentRoot.style.setProperty('--app-font-family', fontFamily)
+    }
+
+    if (document.body) {
+        document.body.style.fontFamily = fontFamily
+    }
+
     const root = document.getElementById('app-root')
     if (root) {
-        root.style.fontSize = settings.fontSize + 'px'
-        root.style.fontFamily = settings.fontFamily + ', sans-serif'
+        root.style.fontSize = '1rem'
+        root.style.fontFamily = fontFamily
     }
 }
 

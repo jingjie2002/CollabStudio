@@ -9,7 +9,7 @@
           <span>{{ roomID }}</span>
         </div>
         <!-- 🟢 房主标识：只有房主才会显示 -->
-        <div v-if="isHost" class="host-badge" title="你是房主，关闭窗口会导致全员掉线">
+        <div v-if="isHost" class="host-badge" title="你是房主，退出或关闭会解散当前房间">
           <i class="ri-vip-crown-fill"></i> 房主
         </div>
       </div>
@@ -39,7 +39,7 @@
         </div>
 
         <div class="user-badge">{{ username }}</div>
-        <button @click="$emit('leave-room')" class="nav-btn danger" title="退出房间">
+        <button @click="requestLeaveRoom" class="nav-btn danger" title="退出房间">
           <i class="ri-logout-box-r-line"></i>
         </button>
       </div>
@@ -148,9 +148,9 @@
     <div v-if="showExitModal" class="modal-overlay fade-in">
       <div class="modal-content">
         <div class="modal-icon"><i class="ri-alert-fill"></i></div>
-        <h3>确定要关闭吗？</h3>
-        <p>你是当前的 <strong>房主</strong>。</p>
-        <p class="warning-text">如果关闭窗口，房间将解散，所有其他成员都会被迫离线！</p>
+        <h3>{{ exitModalTitle }}</h3>
+        <p>你是当前房间的 <strong>房主</strong>。</p>
+        <p class="warning-text">{{ exitModalWarning }}</p>
         <div class="modal-actions">
           <button @click="showExitModal = false" class="btn cancel">取消</button>
           <button @click="confirmExit" class="btn confirm">解散并退出</button>
@@ -164,12 +164,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import Editor from './Editor.vue'
 import SettingsPanel from './SettingsPanel.vue'
 import AiPanel from './AiPanel.vue'
 // 引入所有需要的后端 Go 方法
-import { SaveFile, OpenFile, IsHostUser, ConfirmExit } from '../../wailsjs/go/main/App'
+import { SaveFile, OpenFile, ConfirmExit } from '../../wailsjs/go/main/App'
 import { EventsOn } from '../../wailsjs/runtime'
 import { serverConfig } from '../store'
 import { settings } from '../settings'
@@ -178,8 +178,11 @@ import 'remixicon/fonts/remixicon.css'
 
 const props = defineProps({
   username: { type: String, default: 'Guest' },
-  initialRoom: { type: String, default: 'demo-room' }
+  initialRoom: { type: String, default: 'demo-room' },
+  active: { type: Boolean, default: true }
 })
+
+const emit = defineEmits(['leave-room', 'host-status'])
 
 // --- 状态变量定义 ---
 const editorRef = ref(null)
@@ -208,12 +211,21 @@ const THROTTLE_DELAY = 40
 const isHost = ref(false)
 const showExitModal = ref(false)
 const showSettings = ref(false)
+const pendingExitAction = ref('room') // room | window
+let exitFallbackTimer = null
 
 // 编辑器字体样式（响应式跟随设置面板）
 const editorFontStyle = computed(() => ({
   '--editor-font-size': settings.fontSize + 'px',
   '--editor-font-family': settings.fontFamily
 }))
+
+const exitModalTitle = computed(() => pendingExitAction.value === 'window' ? '确定要关闭吗？' : '确定要退出房间吗？')
+const exitModalWarning = computed(() => (
+  pendingExitAction.value === 'window'
+    ? '确认后当前房间将解散，所有成员都会退出该房间。'
+    : '确认后该房间将解散，所有成员都会退出该房间。'
+))
 
 const handleToggleTheme = () => toggleTheme()
 
@@ -308,6 +320,20 @@ const connectWebSocket = () => {
             if (!currentUsers.has(key)) remoteCursors.delete(key)
           }
           flushCursors()
+        }
+        else if (payload.type === 'host_status') {
+          isHost.value = payload.isHost === true
+          emit('host-status', {
+            roomId: roomID.value,
+            isHost: isHost.value,
+            host: payload.host || ''
+          })
+        }
+        else if (payload.type === 'room_closed') {
+          handleRoomClosed(payload)
+        }
+        else if (payload.type === 'error') {
+          alert(payload.message || '操作失败')
         }
         else if (payload.type === 'doc_update') {
           if (payload.sender === props.username) return
@@ -502,35 +528,109 @@ const handleInsertFromAI = (text) => {
 const scrollToBottom = () => { nextTick(() => { if (chatBoxRef.value) chatBoxRef.value.scrollTop = chatBoxRef.value.scrollHeight }) }
 
 // --- 生命周期 & 房主逻辑 ---
+const clearExitFallback = () => {
+  if (exitFallbackTimer) {
+    clearTimeout(exitFallbackTimer)
+    exitFallbackTimer = null
+  }
+}
+
+const sendDissolveRoom = () => {
+  if (!socket.value || socket.value.readyState !== WebSocket.OPEN) return false
+  socket.value.send(JSON.stringify({
+    type: 'dissolve_room',
+    sender: props.username
+  }))
+  return true
+}
+
+const scheduleExitFallback = () => {
+  clearExitFallback()
+  exitFallbackTimer = setTimeout(() => {
+    exitFallbackTimer = null
+    if (pendingExitAction.value === 'window' && isWailsEnv) {
+      ConfirmExit()
+    } else {
+      emit('leave-room')
+    }
+  }, 1200)
+}
+
+const openHostExitModal = (action = 'room') => {
+  pendingExitAction.value = action
+  showExitModal.value = true
+}
+
+const requestLeaveRoom = () => {
+  if (isHost.value) {
+    openHostExitModal('room')
+    return
+  }
+  emit('leave-room')
+}
+
+const handleRoomClosed = (payload) => {
+  const action = pendingExitAction.value
+  clearExitFallback()
+  showExitModal.value = false
+  chatMessages.value.push({
+    sender: 'System',
+    text: payload.message || '房间已解散'
+  })
+  emit('leave-room')
+  if (action === 'window' && isWailsEnv) {
+    setTimeout(() => ConfirmExit(), 50)
+  }
+}
+
 onMounted(async () => {
   connectWebSocket()
 
-  // 🟢 浏览器兼容性：只在 Wails 环境中检查房主身份和监听事件
+  // 🟢 浏览器兼容性：只在 Wails 环境中监听关闭保护事件
   if (isWailsEnv) {
-    // 初始化：检查房主身份
-    try {
-      isHost.value = await IsHostUser()
-      console.log("[Workspace] Is Host?", isHost.value)
-    } catch (e) { console.error("Check Host failed:", e) }
-
     // 监听退出警告
     EventsOn("show-exit-warning", () => {
-      showExitModal.value = true
+      if (props.active && isHost.value) {
+        openHostExitModal('window')
+      }
     })
   } else {
     console.log('[Workspace] 运行在标准浏览器模式，跳过 Wails 特性')
   }
 })
 
+watch(() => props.active, (active) => {
+  if (!active) {
+    showExitModal.value = false
+  }
+})
+
 // 确认退出
 const confirmExit = () => {
-  // 🟢 浏览器兼容性：只在 Wails 环境中执行
-  if (isWailsEnv) {
+  showExitModal.value = false
+  if (!isHost.value) {
+    emit('leave-room')
+    return
+  }
+
+  if (sendDissolveRoom()) {
+    scheduleExitFallback()
+    return
+  }
+
+  if (pendingExitAction.value === 'window' && isWailsEnv) {
     ConfirmExit()
+  } else {
+    emit('leave-room')
   }
 }
 
-onUnmounted(() => { if (socket.value) socket.value.close() })
+defineExpose({ requestLeaveRoom })
+
+onUnmounted(() => {
+  clearExitFallback()
+  if (socket.value) socket.value.close()
+})
 </script>
 
 <style scoped>

@@ -30,8 +30,8 @@ func main() {
 
 		// 生命周期：拦截关闭（房主保护）
 		OnBeforeClose: func(ctx context.Context) bool {
-			// 只有已登录的房主才拦截关闭（登录页允许直接关闭）
-			if app.isHost && app.loggedIn && !app.forceClose {
+			// 只有处于工作区且是当前房间房主时才拦截关闭；大厅允许直接关闭。
+			if app.loggedIn && app.workspaceActive && app.roomHostActive && !app.forceClose {
 				wailsRuntime.EventsEmit(ctx, "show-exit-warning")
 				return true // 阻止关闭
 			}
